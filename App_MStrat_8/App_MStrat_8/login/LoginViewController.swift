@@ -177,28 +177,7 @@ class LoginViewController: UIViewController {
 //            guard let storyboard = storyboard else { return }
 //
 //            // Instantiate the UITabBarController using its identifier "tabBar"
-//            if let tabBarController = storyboard.instantiateViewController(withIdentifier: "tabbar") as? UITabBarController {
-<<<<<<< HEAD
-//                
-//                // Access the view controllers inside the UITabBarController
-//                if let viewControllers = tabBarController.viewControllers {
-//                    
-=======
-//
-//                // Access the view controllers inside the UITabBarController
-//                if let viewControllers = tabBarController.viewControllers {
-//
->>>>>>> 80b8729 (new)
-//                    // 1. Set the userId for Home View (first view controller)
-//                    if let homeScreenVC = viewControllers.first(where: { $0 is homeViewController }) as? homeViewController {
-//                        homeScreenVC.userId = user.id
-//                        print("UserId passed to homeScreenVC: \(homeScreenVC.userId ?? -1)")
-//                    }
-<<<<<<< HEAD
-//                    
-=======
-//
->>>>>>> 80b8729 (new)
+
 //                    // 2. Set the userId for Profile View (second view controller)
 //                    if let profileVC = viewControllers.first(where: { $0 is PersonalInformationViewController }) as? PersonalInformationViewController {
 //                        profileVC.userId = user.id

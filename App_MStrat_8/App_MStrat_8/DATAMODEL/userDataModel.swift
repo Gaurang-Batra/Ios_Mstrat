@@ -72,11 +72,6 @@ class UserDataModel {
         users.append(firstUser)
         users.append(secondUser)
         users.append(thirdUser)
-<<<<<<< HEAD
-//        users.append(zerothUser)
-    }
-=======
->>>>>>> 80b8729 (new)
 
     }
     

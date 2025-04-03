@@ -19,12 +19,7 @@ class SignInSecurityViewController: UIViewController {
     var storedPassword: String {
         return UserDefaults.standard.string(forKey: "userPassword") ?? ""
     }
-    
-<<<<<<< HEAD
-    var userId :Int?
-=======
 
->>>>>>> 80b8729 (new)
 
     override func viewDidLoad() {
         super.viewDidLoad()

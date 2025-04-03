@@ -7,6 +7,8 @@ class VerifyotpViewController: UIViewController {
     @IBOutlet weak var ResendOtpbutton: UIButton!
     @IBOutlet weak var ContinueButton: UIButton!
     @IBOutlet var circleview: [UIView]!
+    
+    var userId: Int?  // Store user ID
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,7 +28,6 @@ class VerifyotpViewController: UIViewController {
             view.layer.cornerRadius = size / 2
             view.layer.masksToBounds = true
             view.backgroundColor = UIColor(red: 0.85, green: 0.85, blue: 0.85, alpha: 1)
-//            addBounceAnimation(to: view, delay: Double(index) * 0.3)
         }
     }
 
@@ -82,13 +83,62 @@ class VerifyotpViewController: UIViewController {
         return otpPredicate.evaluate(with: otp)
     }
 
-    // Function to navigate to the home screen
+    // Function to navigate to the home screen with userId
     private func navigateToHomeScreen() {
-        guard let homeScreenVC = storyboard?.instantiateViewController(withIdentifier: "tabbar") else {
+        guard let storyboard = storyboard,
+              let tabBarController = storyboard.instantiateViewController(withIdentifier: "tabbar") as? UITabBarController,
+              let viewControllers = tabBarController.viewControllers else {
             showAlert(message: "Unable to navigate to the home screen.")
             return
         }
-        navigationController?.pushViewController(homeScreenVC, animated: true)
+
+        for (index, viewController) in viewControllers.enumerated() {
+            if let navController = viewController as? UINavigationController,
+               let rootViewController = navController.viewControllers.first {
+
+                if let homeVC = rootViewController as? homeViewController {
+                    homeVC.userId = userId
+                    print("UserId passed to homeViewController at index \(index): \(userId!)")
+                }
+                if let splitpalVC = rootViewController as? SplitpalViewController {
+                    splitpalVC.userId = userId
+                    print("UserId passed to SplitpalViewController at index \(index): \(userId!)")
+                }
+                if let censusVC = rootViewController as? CensusViewController {
+                    censusVC.userId = userId
+                    print("UserId passed to CensusViewController at index \(index): \(userId!)")
+                }
+                if let profileVC = rootViewController as? PersonalInformationViewController {
+                    profileVC.userId = userId
+                    print("UserId passed to PersonalInformationViewController at index \(index): \(userId!)")
+                }
+            } else {
+                if let homeVC = viewController as? homeViewController {
+                    homeVC.userId = userId
+                    print("UserId passed to homeViewController at index \(index): \(userId!)")
+                }
+                if let splitpalVC = viewController as? SplitpalViewController {
+                    splitpalVC.userId = userId
+                    print("UserId passed to SplitpalViewController at index \(index): \(userId!)")
+                }
+                if let censusVC = viewController as? CensusViewController {
+                    censusVC.userId = userId
+                    print("UserId passed to CensusViewController at index \(index): \(userId!)")
+                }
+                if let profileVC = viewController as? PersonalInformationViewController {
+                    profileVC.userId = userId
+                    print("UserId passed to PersonalInformationViewController at index \(index): \(userId!)")
+                }
+            }
+        }
+
+        // Navigate to the main app
+        if let navController = navigationController {
+            navController.pushViewController(tabBarController, animated: true)
+        } else {
+            tabBarController.modalPresentationStyle = .fullScreen
+            present(tabBarController, animated: true)
+        }
     }
 
     // Function to show an alert
@@ -97,16 +147,4 @@ class VerifyotpViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
-
-    // Function to add bounce animation to a view
-//    private func addBounceAnimation(to view: UIView, delay: TimeInterval) {
-//        let animation = CABasicAnimation(keyPath: "transform.scale")
-//        animation.fromValue = 1.0
-//        animation.toValue = 1.1
-//        animation.duration = 0.8
-//        animation.autoreverses = true
-//        animation.repeatCount = .infinity
-//        animation.beginTime = CACurrentMediaTime() + delay
-//        view.layer.add(animation, forKey: "bounce")
-//    }
 }

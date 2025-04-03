@@ -48,30 +48,35 @@ class SignUpViewController: UIViewController {
     
     // Action for the Sign Up button
     @IBAction func signUpButtonTapped(_ sender: UIButton) {
-         guard let name = nameTextField.text, !name.isEmpty else {
-             showAlert(message: "Please enter your name.")
-             return
-         }
-         
-         guard let email = emailTextField.text, isValidEmail(email) else {
-             showAlert(message: "Please enter a valid email address.")
-             return
-         }
-         
-         guard let password = passwordTextField.text, password.count >= 8 else {
-             showAlert(message: "Password must be at least 8 characters long.")
-             return
-         }
-         
-         // Create a new user using UserDataModel
-         let newUser = UserDataModel.shared.createUser(email: email, fullname: name, password: password)
-         print("New user created: \(newUser)")
+        guard let name = nameTextField.text, !name.isEmpty else {
+            showAlert(message: "Please enter your name.")
+            return
+        }
 
-         // Navigate to the verification screen
-         guard let storyboard = storyboard else { return }
-         let verifyVC = storyboard.instantiateViewController(withIdentifier: "verifycode")
-         navigationController?.pushViewController(verifyVC, animated: true)
-     }
+        guard let email = emailTextField.text, isValidEmail(email) else {
+            showAlert(message: "Please enter a valid email address.")
+            return
+        }
+
+        guard let password = passwordTextField.text, password.count >= 8 else {
+            showAlert(message: "Password must be at least 8 characters long.")
+            return
+        }
+
+        // Create a new user using UserDataModel
+        let newUser = UserDataModel.shared.createUser(email: email, fullname: name, password: password)
+        print("New user created: \(newUser)")
+
+        // Navigate to the verification screen **before** going to the Tab Bar Controller
+        guard let storyboard = storyboard else { return }
+        if let verifyVC = storyboard.instantiateViewController(withIdentifier: "verifycode") as? VerifyotpViewController {
+            verifyVC.userId = newUser.id  // Pass user ID to verification screen
+            
+            // Push to verification screen
+            navigationController?.pushViewController(verifyVC, animated: true)
+        }
+    }
+
 
 
     

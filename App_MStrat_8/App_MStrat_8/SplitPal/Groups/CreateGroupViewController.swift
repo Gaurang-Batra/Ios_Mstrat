@@ -35,18 +35,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
 
         users = UserDataModel.shared.getAllUsers()
         
-<<<<<<< HEAD
-=======
 
-        if let currentUserId = userId {
-            selectedMembers.append(currentUserId)
-            
-            users = users.filter { $0.id != currentUserId }
-        }
-        
-        searchUsers = users
-
->>>>>>> 80b8729 (new)
         // Automatically add current user to selected members
         if let currentUserId = userId {
             selectedMembers.append(currentUserId)
@@ -114,13 +103,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     }
 
     @IBAction func createGroupButtonTapped(_ sender: Any) {
-<<<<<<< HEAD
-        
-        guard let groupName = textField.text, !groupName.isEmpty, let selectedImage = selectedImage else {
-            return
-        }
-        
-=======
+
 
         guard let groupName = textField.text, !groupName.isEmpty, let selectedImage = selectedImage else {
             return
@@ -159,7 +142,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
             }
         }
 
->>>>>>> 80b8729 (new)
+
         // Check if a group with the same name already exists
         let allGroups = GroupDataModel.shared.getAllGroups()
         let groupExists = allGroups.contains { $0.groupName.lowercased() == groupName.lowercased() }

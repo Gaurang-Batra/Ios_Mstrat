@@ -24,10 +24,7 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
     override func viewDidLoad() {
         super.viewDidLoad()
-<<<<<<< HEAD
-=======
 
->>>>>>> 80b8729 (new)
         
         print("this id is on home page \(userId)")
         lineDotted.isHidden = true
