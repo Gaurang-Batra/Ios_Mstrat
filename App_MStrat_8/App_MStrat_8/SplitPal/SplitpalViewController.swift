@@ -1,9 +1,3 @@
-//
-//  SplitpalViewController.swift
-//  App_MStrat_8
-//
-//  Created by Gaurang  on 04/12/24.
-//
 import UIKit
 
 class SplitpalViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -13,14 +7,24 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     @IBOutlet weak var addgroupbutton: UIButton!
     @IBOutlet weak var welcomeimage: UIImageView!
     @IBOutlet weak var tableView: UITableView!
+    
+    @IBOutlet weak var Willgetlabel: UILabel!
+    
+    @IBOutlet weak var WillPaylabel: UILabel!
+    
+    @IBOutlet weak var TotalExpenselabel: UILabel!
+    
+ 
 
     var selectedGroupIndex: Int? = nil
     var selectedImage: UIImage? = nil
-    var userId : Int?
+    var userId: Int?
+    
+    var filteredGroups: [Group] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print ("this id is on the split page : \(userId))")
+        print("this id is on the split page: \(userId ?? -1)")
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -40,20 +44,66 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
         makeButtonCircular()
         tableView.separatorStyle = .singleLine
+        updateBalanceLabels()
 
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newGroupAdded, object: nil)
-//        NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newexpenseaddedingroup, object: nil)
-//
-//        tableView.reloadData() // Initial reload (if needed)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newExpenseAddedInGroup, object: nil)
+
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        loadUserGroups()
     }
 
-//    deinit {
-//        NotificationCenter.default.removeObserver(self, name: .newGroupAdded, object: nil)
-//        NotificationCenter.default.removeObserver(self, name: .newexpenseaddedingroup, object: nil)
-//    }
-
     @objc func reloadTableView() {
-        tableView.reloadData()
+        loadUserGroups()
+        updateBalanceLabels()
+    }
+    
+    func updateBalanceLabels() {
+        guard let userId = self.userId else {
+            print("User ID is nil, cannot calculate balances")
+            return
+        }
+
+        var totalWillGet: Double = 0.0
+        var totalWillPay: Double = 0.0
+
+        let allExpenses = SplitExpenseDataModel.shared.getAllExpenseSplits()
+
+        for expense in allExpenses {
+            if expense.paidBy.contains("(You)") {
+                totalWillGet += expense.totalAmount
+            }
+
+            if expense.payee.contains(userId) {
+                let amountToPay = expense.splitAmounts.reduce(0) { partialResult, entry in
+                    return partialResult + entry.value
+                }
+                totalWillPay += amountToPay
+            }
+        }
+
+        Willgetlabel.text = "₹\(totalWillGet)"
+        WillPaylabel.text = "₹\(totalWillPay)"
+    }
+
+    
+    func loadUserGroups() {
+        guard let userId = self.userId else {
+            print("User ID is nil, cannot filter groups")
+            return
+        }
+
+        let allGroups = GroupDataModel.shared.getAllGroups()
+        filteredGroups = allGroups.filter { $0.members.contains(userId) }
+
+        print("Filtered groups for user \(userId): \(filteredGroups.map { $0.groupName })")
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
     }
 
     func setTopCornerRadius(for view: UIView, radius: CGFloat) {
@@ -94,19 +144,22 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
     // MARK: - UITableViewDataSource Methods
 
+    // MARK: - UITableViewDataSource Methods
+
     func numberOfSections(in tableView: UITableView) -> Int {
-        return GroupDataModel.shared.getAllGroups().count
+        return filteredGroups.count // Each group gets its own section
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return 1 // Only one row per section
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SplitCell", for: indexPath)
-        let group = GroupDataModel.shared.getAllGroups()[indexPath.section]
+        let group = filteredGroups[indexPath.section] // Use section instead of row
+        
         cell.textLabel?.text = group.groupName
-        cell.imageView?.image = group.category ?? UIImage(systemName: "photo")
+        cell.imageView?.image = group.category
 
         return cell
     }
@@ -114,10 +167,30 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     // MARK: - UITableViewDelegate Methods
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        selectedGroupIndex = indexPath.section
+        let selectedGroup = filteredGroups[indexPath.section] // ✅ Correct way
+        print("Selected group: \(selectedGroup.groupName)")
         performSegue(withIdentifier: "Groupsdetails", sender: self)
     }
+
+
+//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+//        return 10 // Space between sections
+//    }
+//
+//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+//        let headerView = UIView()
+//        headerView.backgroundColor = .clear
+//        return headerView
+//    }
+
+    
+    // MARK: - UITableViewDelegate Methods
+
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        let selectedGroup = filteredGroups[indexPath.row]
+//        print("Selected group: \(selectedGroup.groupName)")
+//        performSegue(withIdentifier: "Groupsdetails", sender: self)
+//    }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
@@ -139,14 +212,12 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
         performSegue(withIdentifier: "createsplitgroup", sender: self)
     }
 
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Groupsdetails",
            let destinationVC = segue.destination as? GroupDetailViewController,
-           let selectedIndex = selectedGroupIndex {
+           let selectedIndex = tableView.indexPathForSelectedRow?.section {
             destinationVC.userId = self.userId
-            let selectedGroup = GroupDataModel.shared.getAllGroups()[selectedIndex]
-            destinationVC.groupItem = selectedGroup
+            destinationVC.groupItem = filteredGroups[selectedIndex]
         }
         else if segue.identifier == "createsplitgroup" {
             if let navigationController = segue.destination as? UINavigationController,

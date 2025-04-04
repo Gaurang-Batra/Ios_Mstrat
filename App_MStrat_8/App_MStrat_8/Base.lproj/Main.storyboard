@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="myV-Lb-yML">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="sbJ-cx-RRT">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
@@ -240,6 +240,9 @@ Try it!</string>
                     <connections>
                         <outlet property="Balanceviewcontainer" destination="vK9-xO-FTG" id="HIx-T4-IAr"/>
                         <outlet property="Groupsviewcontainer" destination="If3-2M-3CG" id="mqj-KN-3B7"/>
+                        <outlet property="TotalExpenselabel" destination="811-Yj-PDU" id="HNy-zw-Rws"/>
+                        <outlet property="WillPaylabel" destination="3Oc-re-pnZ" id="ego-VP-8NN"/>
+                        <outlet property="Willgetlabel" destination="mwn-la-bNt" id="GT8-sA-6kw"/>
                         <outlet property="addgroupbutton" destination="kwP-cL-aDY" id="l0o-Tq-Ask"/>
                         <outlet property="tableView" destination="00D-Tm-Clr" id="OWf-7y-qQ3"/>
                         <outlet property="welcomeimage" destination="CCt-sV-c0S" id="6H9-2b-WWy"/>
@@ -248,7 +251,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1546" y="332"/>
+            <point key="canvasLocation" x="1545.8015267175572" y="331.69014084507046"/>
         </scene>
         <!--SplitPal-->
         <scene sceneID="GSL-kt-Bra">
@@ -606,17 +609,14 @@ Try it!</string>
                                     <segment title="Yearly"/>
                                 </segments>
                             </segmentedControl>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Screenshot 2025-01-27 at 8.43.17 AM" translatesAutoresizingMaskIntoConstraints="NO" id="BWq-Kf-C7X">
-                                <rect key="frame" x="41" y="222" width="310" height="264"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="8rH-sV-Ct0"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" title="Census" id="UYH-cs-db2"/>
                     <connections>
-                        <outlet property="tableView" destination="Qbc-vl-EkF" id="RiR-e4-Qzi"/>
+                        <outlet property="ExpenseSegmentedController" destination="3iU-Yf-m8n" id="Iix-Ir-XSB"/>
+                        <outlet property="tableView" destination="Qbc-vl-EkF" id="odP-dB-2C2"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="zkN-8q-Uag" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -3387,11 +3387,10 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         <segue reference="slq-dV-Nfy"/>
         <segue reference="axb-SC-zZr"/>
         <segue reference="HMP-H4-Ezh"/>
-        <segue reference="5Pz-bk-SPw"/>
+        <segue reference="o86-rk-2IY"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="Group" width="766.80194091796875" height="500.94793701171875"/>
-        <image name="Screenshot 2025-01-27 at 8.43.17 AM" width="986" height="700"/>
         <image name="Split1" width="16.666666030883789" height="16.666666030883789"/>
         <image name="Splitfill" width="25" height="25"/>
         <image name="fruits" width="21.333333969116211" height="21.333333969116211"/>

@@ -7,15 +7,20 @@
 
 import UIKit
 
+import Charts
+import DGCharts
+
 class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     @IBOutlet weak var tableView: UITableView!
 
+    @IBOutlet weak var ExpenseSegmentedController: UISegmentedControl!
     var expenses: [Expense] = []
     var groupedExpenses: [[Expense]] = []  // Array to store grouped expenses by date
     var sectionDates: [String] = []  // Dates for sections
     
     var userId : Int?
+    var barChartView: BarChartView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,6 +32,10 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         // Load expenses from the shared data model
         loadExpenses()
+        ExpenseSegmentedController.selectedSegmentIndex = 0 // Default to weekly
+        
+        
+        setupBarChart()
 
         // Remove the separator lines between table cells
         tableView.separatorStyle = .none
@@ -46,6 +55,128 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
     deinit {
         // Remove observer when the view controller is deallocated
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name("ExpenseAdded"), object: nil)
+    }
+    @IBAction func segmentChanged(_ sender: UISegmentedControl) {
+        showBarChartWithExpenseData()
+    }
+
+    
+    private func setupBarChart() {
+        barChartView = BarChartView()
+        barChartView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(barChartView)
+
+        NSLayoutConstraint.activate([
+            barChartView.topAnchor.constraint(equalTo: ExpenseSegmentedController.bottomAnchor, constant: 20),
+            barChartView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            barChartView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            barChartView.heightAnchor.constraint(equalToConstant: 240)
+        ])
+        
+        // Padding inside chart
+        barChartView.extraTopOffset = 20
+
+        showBarChartWithExpenseData()
+    }
+
+
+    private func showBarChartWithExpenseData() {
+        let allExpenses = ExpenseDataModel.shared.getAllExpenses()
+        let calendar = Calendar.current
+        let today = Date()
+        
+        var filteredExpenses: [Expense] = []
+        var labels: [String] = []
+        var values: [Double] = []
+
+        switch ExpenseSegmentedController.selectedSegmentIndex {
+        case 0: // Weekly (by weekday)
+            filteredExpenses = allExpenses.filter {
+                guard let diff = calendar.dateComponents([.day], from: $0.date, to: today).day else { return false }
+                return diff >= 0 && diff < 7
+            }
+
+            var weekdayTotals: [Int: Double] = [:]
+            for expense in filteredExpenses {
+                let weekday = calendar.component(.weekday, from: expense.date)
+                weekdayTotals[weekday, default: 0] += Double(expense.amount)
+            }
+
+            let weekdaySymbols = calendar.shortWeekdaySymbols
+            for weekday in 1...7 {
+                labels.append(weekdaySymbols[weekday % 7])
+                values.append(weekdayTotals[weekday] ?? 0)
+            }
+
+        case 1: // Monthly (by month in current year)
+            filteredExpenses = allExpenses.filter {
+                calendar.isDate($0.date, equalTo: today, toGranularity: .year)
+            }
+
+            var monthTotals: [Int: Double] = [:]
+            for expense in filteredExpenses {
+                let month = calendar.component(.month, from: expense.date)
+                monthTotals[month, default: 0] += Double(expense.amount)
+            }
+
+            let monthSymbols = calendar.shortMonthSymbols
+            for month in 1...12 {
+                labels.append(monthSymbols[month - 1])
+                values.append(monthTotals[month] ?? 0)
+            }
+
+        case 2: // Yearly (e.g. 2022, 2023, 2024)
+            let uniqueYears = Set(allExpenses.map { calendar.component(.year, from: $0.date) }).sorted()
+            var yearTotals: [Int: Double] = [:]
+            for expense in allExpenses {
+                let year = calendar.component(.year, from: expense.date)
+                yearTotals[year, default: 0] += Double(expense.amount)
+            }
+
+            for year in uniqueYears {
+                labels.append("\(year)")
+                values.append(yearTotals[year] ?? 0)
+            }
+
+        default:
+            break
+        }
+
+        var entries: [BarChartDataEntry] = []
+        for (index, value) in values.enumerated() {
+            entries.append(BarChartDataEntry(x: Double(index), y: value))
+        }
+
+        let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
+        dataSet.colors = ChartColorTemplates.material()
+        let data = BarChartData(dataSet: dataSet)
+
+        barChartView.data = data
+        barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
+        barChartView.xAxis.labelPosition = .bottom
+        barChartView.xAxis.granularity = 1
+        barChartView.rightAxis.enabled = false
+        barChartView.animate(yAxisDuration: 1.4)
+    }
+
+
+    private func setupTableView() {
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.separatorStyle = .none
+        tableView.layer.cornerRadius = 15
+        tableView.clipsToBounds = true
+        tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableView.automaticDimension
+
+        // Move table view down below the chart
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: barChartView.bottomAnchor, constant: 8),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
 
     // MARK: - Notification Handler

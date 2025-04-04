@@ -140,10 +140,31 @@ class ExpenseDataModel {
     private var expenses: [Expense] = []
     static let shared = ExpenseDataModel()
 
-    private init() {}
+    private init() {
+        preloadExpenses()
+    }
 
     func getAllExpenses() -> [Expense] {
         return expenses
+    }
+    
+    private func getDate(_ string: String) -> Date {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: string) ?? Date()
+    }
+    
+    private func preloadExpenses() {
+        let expenseList = [
+            Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2024-04-04"), category: .food, duration: getDate("2024-01-15"), isRecurring: false),
+            Expense(id: 2, itemName: "home grocery", amount: 3000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2024-05-01"), category: .grocery, duration: getDate("2024-06-01"), isRecurring: true),
+            Expense(id: 3, itemName: "Banana", amount: 5000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-01-10"), category: .grocery, duration: getDate("2025-12-31"), isRecurring: true),
+            Expense(id: 4, itemName: "Pay food Insurance", amount: 1500, image: ExpenseCategory.food.associatedImage, date: getDate("2020-01-01"), category: .food, duration: getDate("2020-01-15"), isRecurring: false),
+            Expense(id: 5, itemName: "Monthly grocery", amount: 3000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-05-01"), category: .grocery, duration: getDate("2025-06-01"), isRecurring: true),
+            Expense(id: 6, itemName: "Grocery Shopping", amount: 200, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-04-01"), category: .grocery, duration: getDate("2025-12-31"), isRecurring: true)
+        ]
+
+        self.expenses = expenseList
     }
 
     func addExpense(itemName: String, amount: Int, image: UIImage, category: ExpenseCategory, duration: Date?, isRecurring: Bool) {

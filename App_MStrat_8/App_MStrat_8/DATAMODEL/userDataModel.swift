@@ -30,7 +30,7 @@ let firstUser = User(
     isVerified: true,
     badges: [],
     currentGoal: nil,
-    groups: [1],
+    groups: [1,2],
     expenses: []
 )
 let secondUser = User(

@@ -100,6 +100,8 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         pricetextfield.addTarget(self, action: #selector(priceTextChanged(_:)), for: .editingChanged)
         segmentedcontroller.addTarget(self, action: #selector(segmentedControlChanged), for: .valueChanged)
         
+        
+        
 
 
     }

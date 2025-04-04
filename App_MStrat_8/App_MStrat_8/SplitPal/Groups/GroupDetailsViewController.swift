@@ -42,46 +42,33 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         
         print ("this id is present in the balance page : \(userId) ")
         
-        // Check if groupItem is set, if not, print a message
         guard let group = groupItem else {
             print("groupItem is nil")
             return
         }
 
-        // Assuming groupItem has a members array with user IDs
         var memberNames: [String] = []
 
-        // Loop through each member in the group and get their name
         for userId in group.members {
             if let user = UserDataModel.shared.getUser(by: userId) {
-                memberNames.append(user.fullname)  // Add the user's name to the array
+                memberNames.append(user.fullname)
             }
         }
 
-        // Limit the list to two members and add "..." if there are more
         let limitedNames = memberNames.prefix(1).joined(separator: ", ")
         let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
 
-        // Set the button title to the limited list of member names
         membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
 
 
 
-        
-
-
-        
-        // Load balances from the SplitExpenseDataModel for the group
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id)
         
-        // Filter balances for myBalances and othersBalances
-        filterBalances()
+       filterBalances()
         
-        // Set up group information
         groupnamelabel.text = group.groupName
         groupimageoutlet.image = group.category
         
-        // Set up GroupInfoView
         GroupInfoView.layer.cornerRadius = 20
         GroupInfoView.layer.masksToBounds = true
         
@@ -136,37 +123,30 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     func filterBalances() {
         var tempBalances: [ExpenseSplitForm] = []
         
-        // Iterate over all expenses and create one entry per payee, updating the amount if necessary
         for expense in balances {
             for payeeId in expense.payee {
                 var payeeExpense = expense
                 payeeExpense.paidBy = expense.paidBy  // Keep the same payer
                 payeeExpense.payee = [payeeId]  // Set the payee to the current payee only
                 
-                // Check if the payer-payee combination already exists
                 if let existingExpenseIndex = tempBalances.firstIndex(where: { $0.paidBy == payeeExpense.paidBy && $0.payee == payeeExpense.payee }) {
-                    // If it exists, update the existing entry by adding the new amount
                     tempBalances[existingExpenseIndex].totalAmount += payeeExpense.totalAmount
                 } else {
-                    // If not, add a new entry for this payee
                     tempBalances.append(payeeExpense)
                 }
             }
         }
-        
-        // Get current user's name
+  
         let currentUserName = userId != nil ? UserDataModel.shared.getUser(by: userId!)?.fullname : nil
         let currentUserDisplayName = currentUserName != nil ? "\(currentUserName!) (You)" : nil
         
-        // Now tempBalances will have one entry per payee, and updated amounts where necessary
+    
         myBalances = tempBalances.filter {
-            // Check if current user is the payer or payee
             (currentUserDisplayName != nil && $0.paidBy.contains(currentUserDisplayName!)) ||
             (userId != nil && $0.payee.contains(userId!))
         }
         
         othersBalances = tempBalances.filter {
-            // Check if current user is NOT the payer or payee
             (currentUserDisplayName == nil || !$0.paidBy.contains(currentUserDisplayName!)) &&
             (userId == nil || !$0.payee.contains(userId!))
         }
