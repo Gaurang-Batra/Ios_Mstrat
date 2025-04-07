@@ -10,7 +10,7 @@ import UIKit
 import Charts
 import DGCharts
 
-class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ChartViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
 
@@ -65,6 +65,8 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
         barChartView = BarChartView()
         barChartView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(barChartView)
+        barChartView.delegate = self
+
 
         NSLayoutConstraint.activate([
             barChartView.topAnchor.constraint(equalTo: ExpenseSegmentedController.bottomAnchor, constant: 20),
@@ -101,12 +103,18 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 let weekday = calendar.component(.weekday, from: expense.date)
                 weekdayTotals[weekday, default: 0] += Double(expense.amount)
             }
-
             let weekdaySymbols = calendar.shortWeekdaySymbols
             for weekday in 1...7 {
-                labels.append(weekdaySymbols[weekday % 7])
+                labels.append(weekdaySymbols[weekday - 1])  // Correctly maps 1-7 to index 0-6
                 values.append(weekdayTotals[weekday] ?? 0)
             }
+
+
+//            let weekdaySymbols = calendar.shortWeekdaySymbols
+//            for weekday in 1...7 {
+//                labels.append(weekdaySymbols[weekday % 7])
+//                values.append(weekdayTotals[weekday] ?? 0)
+//            }
 
         case 1: // Monthly (by month in current year)
             filteredExpenses = allExpenses.filter {
@@ -188,8 +196,9 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     // MARK: - Load Expenses
     private func loadExpenses() {
-        expenses = ExpenseDataModel.shared.getAllExpenses() // Fetch all expenses
-        groupExpensesByDate() // Group expenses by date
+        expenses = ExpenseDataModel.shared.getAllExpenses()
+        groupExpensesByDate()
+
     }
 
     // MARK: - Table View Delegate Methods
@@ -231,35 +240,67 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     // MARK: - Grouping and Sorting Expenses by Date
+    func chartValueNothingSelected(_ chartView: ChartViewBase) {
+        loadExpenses()
+        tableView.reloadData()
+    }
+
+    
+    func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        let index = Int(entry.x)
+        
+        let allExpenses = ExpenseDataModel.shared.getAllExpenses()
+        let calendar = Calendar.current
+        let today = Date()
+        
+        var filtered: [Expense] = []
+        
+        switch ExpenseSegmentedController.selectedSegmentIndex {
+        case 0: // Weekly
+            filtered = allExpenses.filter {
+                let weekday = calendar.component(.weekday, from: $0.date)
+                return weekday == index + 1
+            }
+            
+        case 1: // Monthly
+            filtered = allExpenses.filter {
+                calendar.isDate($0.date, equalTo: today, toGranularity: .year) &&
+                calendar.component(.month, from: $0.date) == index + 1
+            }
+            
+        case 2: // Yearly
+            let uniqueYears = Set(allExpenses.map { calendar.component(.year, from: $0.date) }).sorted()
+            if index < uniqueYears.count {
+                let selectedYear = uniqueYears[index]
+                filtered = allExpenses.filter {
+                    calendar.component(.year, from: $0.date) == selectedYear
+                }
+            }
+            
+        default:
+            break
+        }
+        
+        // Update expenses shown in the table
+        self.expenses = filtered
+        self.groupExpensesByDate()
+        self.tableView.reloadData()
+    }
+
 
     private func groupExpensesByDate() {
-        // First, sort the expenses by date
-        let sortedExpenses = expenses.sorted { (expense1, expense2) -> Bool in
-            guard let date1 = expense1.duration, let date2 = expense2.duration else {
-                return false
-            }
-            return date1 < date2  // Sort by date in ascending order
-        }
-        
-        // Group expenses by date after sorting
-        var grouped: [String: [Expense]] = [:]
-        
-        for expense in sortedExpenses {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"  // Format the date to display in a readable format
-            let dateString = dateFormatter.string(from: expense.duration ?? Date())
-            
-            if grouped[dateString] == nil {
-                grouped[dateString] = []
-            }
-            
-            grouped[dateString]?.append(expense)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        var groupedDict: [String: [Expense]] = [:]
+
+        for expense in expenses {
+            let dateKey = dateFormatter.string(from: expense.date)
+            groupedDict[dateKey, default: []].append(expense)
         }
 
-        // Assign grouped expenses to the groupedExpenses array
-        groupedExpenses = Array(grouped.values)
-        
-        // Assign section titles (dates)
-        sectionDates = Array(grouped.keys).sorted()  // Sort the section dates (headers)
+        sectionDates = groupedDict.keys.sorted()
+        groupedExpenses = sectionDates.map { groupedDict[$0]! }
     }
+
 }

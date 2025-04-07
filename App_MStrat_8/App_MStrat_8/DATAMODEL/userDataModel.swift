@@ -16,7 +16,7 @@ struct User {
     var isVerified: Bool?
     var badges: [String]?
     var currentGoal: Goal?
-    var groups : [Int]?
+    var groups : [Int ]?
     var expenses: [Expense]?
 }
 

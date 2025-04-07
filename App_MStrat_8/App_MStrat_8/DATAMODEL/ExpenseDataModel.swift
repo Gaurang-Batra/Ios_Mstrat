@@ -156,33 +156,32 @@ class ExpenseDataModel {
     
     private func preloadExpenses() {
         let expenseList = [
-            Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2024-04-04"), category: .food, duration: getDate("2024-01-15"), isRecurring: false),
-            Expense(id: 2, itemName: "home grocery", amount: 3000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2024-05-01"), category: .grocery, duration: getDate("2024-06-01"), isRecurring: true),
-            Expense(id: 3, itemName: "Banana", amount: 5000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-01-10"), category: .grocery, duration: getDate("2025-12-31"), isRecurring: true),
-            Expense(id: 4, itemName: "Pay food Insurance", amount: 1500, image: ExpenseCategory.food.associatedImage, date: getDate("2020-01-01"), category: .food, duration: getDate("2020-01-15"), isRecurring: false),
-            Expense(id: 5, itemName: "Monthly grocery", amount: 3000, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-05-01"), category: .grocery, duration: getDate("2025-06-01"), isRecurring: true),
-            Expense(id: 6, itemName: "Grocery Shopping", amount: 200, image: ExpenseCategory.grocery.associatedImage, date: getDate("2025-04-01"), category: .grocery, duration: getDate("2025-12-31"), isRecurring: true)
+            Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-04-08"), category: .food, duration: getDate(""), isRecurring: false),
+            Expense(id: 2, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-03-08"), category: .food, duration: getDate(""), isRecurring: false),
+            Expense(id: 3, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-01-08"), category: .food, duration: getDate(""), isRecurring: false),
+            Expense(id: 4, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-03-08"), category: .food, duration: getDate(""), isRecurring: false),
+            Expense(id: 5, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-01-08"), category: .food, duration: getDate(""), isRecurring: false),
         ]
 
         self.expenses = expenseList
     }
 
-    func addExpense(itemName: String, amount: Int, image: UIImage, category: ExpenseCategory, duration: Date?, isRecurring: Bool) {
+    func addExpense(itemName: String, amount: Int, image: UIImage, category: ExpenseCategory, date: Date, duration: Date?, isRecurring: Bool) {
         let newId = (expenses.last?.id ?? 0) + 1
         let newExpense = Expense(
             id: newId,
             itemName: itemName,
             amount: amount,
             image: image,
-            date: Date(), // Date of creation
+            date: date,
             category: category,
-            duration: duration, // When it should repeat (if recurring)
+            duration: duration,
             isRecurring: isRecurring
         )
         expenses.insert(newExpense, at: 0)
         print("New expense added: \(newExpense.itemName) with ID \(newExpense.id) on \(newExpense.date). Recurring on: \(newExpense.duration != nil ? "\(newExpense.duration!)" : "N/A"). Is recurring: \(newExpense.isRecurring)")
-
     }
+
 
     func checkRecurringExpenses() {
         let currentDate = Date()

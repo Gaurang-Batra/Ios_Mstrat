@@ -16,6 +16,10 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     @IBOutlet weak var lineDotted: UILabel!
     @IBOutlet weak var savedAmountLabel: UILabel!
     
+    @IBOutlet weak var ContentView: UIView!
+    
+   
+    
     var expenses: [Expense] = []
     var currentGoal: Goal?
     var goals: [Goal] = []
@@ -24,6 +28,9 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
     override func viewDidLoad() {
         super.viewDidLoad()
+//        
+//        ScrollView.alwaysBounceVertical = true
+//        ScrollView.showsVerticalScrollIndicator = true
 
         
         print("this id is on home page \(userId)")

@@ -115,7 +115,6 @@ class CategoryNameViewController: UIViewController {
 
 
     @IBAction func addexpenseTapped(_ sender: Any) {
-        // Validate and capture user input
         guard let itemName = itemNameTextField.text, !itemName.isEmpty,
               let amountText = amountTextField.text, let amount = Int(amountText),
               let selectedCategory = selectedCategory,
@@ -124,23 +123,25 @@ class CategoryNameViewController: UIViewController {
             return
         }
 
-        // Determine if the expense is recurring and capture duration
         let isRecurring = recurringSwitch.isOn
         let duration = isRecurring ? datePicker.date : nil
 
-        // Add the new expense to the data model
+        // Automatically use today's date for the expense
+        let today = Date()
+
         ExpenseDataModel.shared.addExpense(
             itemName: itemName,
             amount: amount,
             image: selectedImage,
             category: selectedCategory,
+            date: today,
             duration: duration,
             isRecurring: isRecurring
         )
 
-        // Dismiss or navigate back
         self.dismiss(animated: true) {
             NotificationCenter.default.post(name: NSNotification.Name("ExpenseAdded"), object: nil)
         }
     }
+
 }
