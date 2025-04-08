@@ -18,6 +18,7 @@ struct User {
     var currentGoal: Goal?
     var groups : [Int ]?
     var expenses: [Expense]?
+    var allowance : [Allowance]?
 }
 
 
