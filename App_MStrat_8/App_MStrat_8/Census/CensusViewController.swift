@@ -150,21 +150,70 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
             break
         }
 
+//        var entries: [BarChartDataEntry] = []
+//        for (index, value) in values.enumerated() {
+//            entries.append(BarChartDataEntry(x: Double(index), y: value))
+//        }
+//
+//        let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
+//        dataSet.colors = ChartColorTemplates.material()
+//        let data = BarChartData(dataSet: dataSet)
+//
+//        barChartView.data = data
+//        barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
+//        barChartView.xAxis.labelPosition = .bottom
+//        barChartView.xAxis.granularity = 1
+//        barChartView.rightAxis.enabled = false
+//        barChartView.animate(yAxisDuration: 1.4)
+        
         var entries: [BarChartDataEntry] = []
-        for (index, value) in values.enumerated() {
-            entries.append(BarChartDataEntry(x: Double(index), y: value))
-        }
+           for (index, value) in values.enumerated() {
+               entries.append(BarChartDataEntry(x: Double(index), y: value))
+           }
 
-        let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
-        dataSet.colors = ChartColorTemplates.material()
-        let data = BarChartData(dataSet: dataSet)
+           let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
+           
+           // 🎨 Stylish Touches
+           dataSet.colors = ChartColorTemplates.joyful() // You can try .pastel(), .colorful(), etc.
+           dataSet.drawValuesEnabled = true // Show values above bars
+           dataSet.valueFont = .systemFont(ofSize: 12, weight: .semibold)
+           dataSet.valueTextColor = .black
+           dataSet.highlightEnabled = true
 
-        barChartView.data = data
-        barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
-        barChartView.xAxis.labelPosition = .bottom
-        barChartView.xAxis.granularity = 1
-        barChartView.rightAxis.enabled = false
-        barChartView.animate(yAxisDuration: 1.4)
+           // 📊 Chart Data
+           let data = BarChartData(dataSet: dataSet)
+           data.barWidth = 0.5
+
+           // 🧩 Assigning Data
+           barChartView.data = data
+           barChartView.animate(yAxisDuration: 1.5, easingOption: .easeOutBounce)
+
+           // 🧭 Axis Customization
+           barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
+           barChartView.xAxis.labelPosition = .bottom
+           barChartView.xAxis.labelFont = .systemFont(ofSize: 12, weight: .medium)
+           barChartView.xAxis.drawGridLinesEnabled = false
+           barChartView.xAxis.granularity = 1
+
+           barChartView.leftAxis.axisMinimum = 0
+           barChartView.leftAxis.drawGridLinesEnabled = true
+           barChartView.rightAxis.enabled = false
+
+           // 🧊 Interactivity
+           barChartView.doubleTapToZoomEnabled = false
+           barChartView.highlightPerTapEnabled = true
+           barChartView.pinchZoomEnabled = true
+           barChartView.setScaleEnabled(true)
+           barChartView.legend.enabled = true
+
+         
+           let marker = BalloonMarker(color: .darkGray, font: .systemFont(ofSize: 12), textColor: .white, insets: UIEdgeInsets(top: 8, left: 8, bottom: 20, right: 8))
+           marker.chartView = barChartView
+           marker.minimumSize = CGSize(width: 75, height: 35)
+           barChartView.marker = marker
+        
+     
+
     }
 
 

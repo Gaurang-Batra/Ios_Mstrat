@@ -157,10 +157,7 @@ class ExpenseDataModel {
     private func preloadExpenses() {
         let expenseList = [
             Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-04-08"), category: .food, duration: getDate(""), isRecurring: false),
-            Expense(id: 2, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-03-08"), category: .food, duration: getDate(""), isRecurring: false),
-            Expense(id: 3, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-01-08"), category: .food, duration: getDate(""), isRecurring: false),
-            Expense(id: 4, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-03-08"), category: .food, duration: getDate(""), isRecurring: false),
-            Expense(id: 5, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-01-08"), category: .food, duration: getDate(""), isRecurring: false),
+          
         ]
 
         self.expenses = expenseList
