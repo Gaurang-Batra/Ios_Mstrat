@@ -49,6 +49,9 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
 
         NotificationCenter.default.addObserver(self, selector: #selector(refreshExpenses), name: NSNotification.Name("ExpenseAdded"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateSavedAmount(_:)), name: NSNotification.Name("GoalAdded"), object: nil)
+        
+        NotificationCenter.default.post(name: NSNotification.Name("ExpenseAdded"), object: nil)
+
 
         styleTextField(AddExpense)
         refreshExpenses()
@@ -153,8 +156,21 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     }
 
     @objc private func updateTotalExpense() {
-        let totalExpense = AllowanceDataModel.shared.getAllAllowances().reduce(0) { $0 + $1.amount }
-        remaininfAllowancelabel.text = String(format: " Rs.%.0f", totalExpense)
+        let totalAllowance = AllowanceDataModel.shared.getAllAllowances().reduce(0.0) { $0 + $1.amount }
+        let totalExpense = ExpenseDataModel.shared.getAllExpenses().reduce(0.0) { $0 + Double($1.amount) }
+
+        let remaining = totalAllowance - totalExpense
+
+        // Show both total expense and remaining (can be negative now)
+        totalexpenselabel.text = String(format: "Rs. %.0f", totalExpense)
+        remaininfAllowancelabel.text = String(format: "Rs. %.0f", remaining)
+        
+        if remaining < 0 {
+            remaininfAllowancelabel.textColor = .red
+        } else {
+            remaininfAllowancelabel.textColor = .systemGreen // or your default color
+        }
+
     }
 
     @objc private func refreshExpenses() {
@@ -162,7 +178,8 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         collectionView.reloadData()
         
         // Add functionality to update total expense label when new expense is appended
-        updateTotalExpenseLabelWithAppendedExpense()
+        updateTotalExpense()
+//        updateTotalExpenseLabelWithAppendedExpense()
     }
 
     private func updateTotalExpenseLabelWithAppendedExpense() {
