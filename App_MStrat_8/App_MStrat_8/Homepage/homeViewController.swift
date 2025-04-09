@@ -18,13 +18,16 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
     @IBOutlet weak var ContentView: UIView!
     
-   
+    @IBOutlet weak var badgesCollectionView: UICollectionView!
+    
     
     var expenses: [Expense] = []
     var currentGoal: Goal?
     var goals: [Goal] = []
     private var goalSavings: Int = 0
     var userId: Int?
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,9 +49,16 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.collectionViewLayout = createLayout()
+        badgesCollectionView.delegate = self
+        badgesCollectionView.dataSource = self
+        badgesCollectionView.collectionViewLayout = createHorizontalLayoutForBadges()
+
 
         NotificationCenter.default.addObserver(self, selector: #selector(refreshExpenses), name: NSNotification.Name("ExpenseAdded"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateSavedAmount(_:)), name: NSNotification.Name("GoalAdded"), object: nil)
+        
+        NotificationCenter.default.post(name: NSNotification.Name("ExpenseAdded"), object: nil)
+
 
         styleTextField(AddExpense)
         refreshExpenses()
@@ -114,47 +124,56 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     }
 
     @IBAction func addSavingTapped(_ sender: UIButton) {
-        guard let expenseText = AddExpense.text, !expenseText.isEmpty, let expenseValue = Int(expenseText)
-                
-                
-                
-        else {
+        guard let expenseText = AddExpense.text, !expenseText.isEmpty, let expenseValue = Int(expenseText) else {
             showAlert(title: "Invalid Input", message: "Please enter a valid number.")
             return
         }
 
-        // Add the entered value to the current savings
         goalSavings += expenseValue
-        
-        
-
-        // Update the goal button title
         updateGoalButton()
-        
-        if let goalAmountText = savedAmountLabel.text,
-               let goalAmount = Int(goalAmountText),
-               goalSavings >= goalAmount {
-                // Logic for when the goal is hit
-                print("Goal Hit! Congratulations! You have reached your goal.")
-                showAlert(title: "Goal Hit!", message: "Congratulations! You have reached your goal")
-                // Reset savings and update UI
-                goalSavings = 0
-                savedAmountLabel.text = ""
-                Addgoalgoalbutton.setTitle("Add Goal", for: .normal)
-            Addgoalgoalbutton.setTitleColor(UIColor.systemBlue, for: .normal)
-                Addgoalgoalbutton.frame.origin.y += 22
-            lineDotted.isHidden = true
-            AddExpense.text = nil
-                updateGoalButton()
-                return
+
+        // 🏆 Unlock new badges based on thresholds
+        for (index, threshold) in badgeThresholds.enumerated() {
+            if goalSavings >= threshold && unlockedBadgeCount <= index {
+                unlockedBadgeCount = index + 1 // Unlock next badge
+                badgesCollectionView.reloadData()
             }
-        // Clear the AddExpense text field after adding
+        }
+
+        // 🎯 Check for goal hit
+        if let goalAmountText = savedAmountLabel.text,
+           let goalAmount = Int(goalAmountText),
+           goalSavings >= goalAmount {
+            showAlert(title: "Goal Hit!", message: "Congratulations! You have reached your goal")
+            goalSavings = 0
+            savedAmountLabel.text = ""
+            Addgoalgoalbutton.setTitle("Add Goal", for: .normal)
+            Addgoalgoalbutton.setTitleColor(UIColor.systemBlue, for: .normal)
+            Addgoalgoalbutton.frame.origin.y += 22
+            lineDotted.isHidden = true
+            updateGoalButton()
+        }
+
         AddExpense.text = nil
     }
 
+
     @objc private func updateTotalExpense() {
-        let totalExpense = AllowanceDataModel.shared.getAllAllowances().reduce(0) { $0 + $1.amount }
-        remaininfAllowancelabel.text = String(format: " Rs.%.0f", totalExpense)
+        let totalAllowance = AllowanceDataModel.shared.getAllAllowances().reduce(0.0) { $0 + $1.amount }
+        let totalExpense = ExpenseDataModel.shared.getAllExpenses().reduce(0.0) { $0 + Double($1.amount) }
+
+        let remaining = totalAllowance - totalExpense
+
+        // Show both total expense and remaining (can be negative now)
+        totalexpenselabel.text = String(format: "Rs. %.0f", totalExpense)
+        remaininfAllowancelabel.text = String(format: "Rs. %.0f", remaining)
+        
+        if remaining < 0 {
+            remaininfAllowancelabel.textColor = .red
+        } else {
+            remaininfAllowancelabel.textColor = .systemGreen // or your default color
+        }
+
     }
 
     @objc private func refreshExpenses() {
@@ -162,7 +181,8 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         collectionView.reloadData()
         
         // Add functionality to update total expense label when new expense is appended
-        updateTotalExpenseLabelWithAppendedExpense()
+        updateTotalExpense()
+//        updateTotalExpenseLabelWithAppendedExpense()
     }
 
     private func updateTotalExpenseLabelWithAppendedExpense() {
@@ -215,26 +235,53 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             return section
         }
     }
+    var badgesarray : [String] = ["Rs_500-removebg-preview","Rs_500-removebg-preview","Rs_500-removebg-preview","Rs_500-removebg-preview"]
+    
+    let badgeThresholds = [100, 500, 1000, 2000]
+   
+
+    var unlockedBadgeCount = 0 // Keeps track of how many badges are unlocked
+
+    
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if (expenses.count>=4){
-            return 4
+        if collectionView == self.collectionView{
+            return min(expenses.count,4)
+        }else if collectionView == self.badgesCollectionView
+        {
+            return unlockedBadgeCount
         }
-        else{
-            return expenses.count
-        }
+        return 0
+       
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as? SetExpenseCollectionViewCell else {
-            fatalError("Unable to dequeue SetExpenseCollectionViewCell")
+
+        if collectionView == self.collectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as? SetExpenseCollectionViewCell else {
+                fatalError("Unable to dequeue SetExpenseCollectionViewCell")
+            }
+            let expense = expenses[indexPath.row]
+            cell.configure(with: expense)
+            cell.layer.cornerRadius = 10
+            cell.layer.masksToBounds = true
+            return cell
+
+        } else if collectionView == self.badgesCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "badges", for: indexPath) as? BadgesCollectionViewCell else {
+                fatalError("Unable to dequeue BadgesCollectionViewCell")
+            }
+            let imageName = badgesarray[indexPath.row]
+            cell.Badgesimage.image = UIImage(named: imageName)
+            cell.layer.cornerRadius = 10
+            cell.layer.masksToBounds = true
+            return cell
         }
-        let expense = expenses[indexPath.row]
-        cell.configure(with: expense)
-        cell.layer.cornerRadius = 10
-        cell.layer.masksToBounds = true
-        return cell
+
+
+        fatalError("Unknown collectionView")
     }
+
 
     func createVerticalDottedLineInBalanceContainer() {
         let dottedLine = CAShapeLayer()
@@ -250,6 +297,28 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         dottedLine.lineDashPattern = [6, 2]
         mainlabel.layer.addSublayer(dottedLine)
     }
+    
+    func createHorizontalLayoutForBadges() -> UICollectionViewLayout {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(180),
+            heightDimension: .absolute(150)
+        )
+
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .estimated(100), // Adjust based on expected total width
+            heightDimension: .absolute(80)   // Height of the collection view
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .continuous
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+
+
 
     private func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)

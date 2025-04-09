@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-enum ExpenseCategory: String, CaseIterable {
+enum ExpenseCategory: String, CaseIterable,Codable {
     case food = "Food"
     case grocery = "Grocery"
     case fuel = "Fuel"
@@ -156,7 +156,7 @@ class ExpenseDataModel {
     
     private func preloadExpenses() {
         let expenseList = [
-            Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-04-08"), category: .food, duration: getDate(""), isRecurring: false),
+            Expense(id: 1, itemName: "food wash", amount: 1200, image: ExpenseCategory.food.associatedImage, date: getDate("2025-04-05"), category: .food, duration: getDate(""), isRecurring: false),
           
         ]
 

@@ -1,4 +1,12 @@
 import UIKit
+import Supabase
+
+struct SupabaseGoal: Codable {
+    var title: String
+    var amount: Int
+    var deadline: Date
+    var savings: Int?
+}
 
 class GoalViewController: UIViewController {
     @IBOutlet weak var savebutton: UIBarButtonItem!
@@ -22,18 +30,35 @@ class GoalViewController: UIViewController {
         }
 
         let deadline = Goaldeadline.date
-        print("Goal details: Title: \(title), Amount: \(amount), Deadline: \(deadline)")
-
-        // Create a Goal object
         let newGoal = Goal(title: title, amount: amount, deadline: deadline, savings: 0)
-
-        // Save the goal in the shared GoalDataModel
+        
         GoalDataModel.shared.addGoal(newGoal)
-
-        // Post a notification with the goal amount
         NotificationCenter.default.post(name: NSNotification.Name("GoalAdded"), object: nil, userInfo: ["goalAmount": amount])
 
-        // Dismiss the view controller
+        Task {
+            await saveGoalToSupabase(goal: newGoal)
+        }
+
         self.dismiss(animated: true, completion: nil)
     }
+    func saveGoalToSupabase(goal: Goal) async {
+        let supabaseGoal = SupabaseGoal(
+            title: goal.title,
+            amount: goal.amount,
+            deadline: goal.deadline,
+            savings: goal.savings ?? 0
+        )
+
+        do {
+            let response = try await supabase.database
+                .from("goals")
+                .insert(supabaseGoal)
+                .execute()
+            print("Goal saved to Supabase: \(response)")
+        } catch {
+            print("Error saving goal: \(error.localizedDescription)")
+        }
+    }
+
+
 }
