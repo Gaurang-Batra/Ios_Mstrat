@@ -9,10 +9,10 @@ import UIKit
 import SwiftUI
 import Supabase
 
-let supabase = SupabaseClient(
-    supabaseURL: URL(string: "https://snnnvsfkhmujbpkdnynq.supabase.co")!,
-    supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNubm52c2ZraG11amJwa2RueW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MDAyMjMsImV4cCI6MjA1ODM3NjIyM30.OBJQ0aIqSEGHASQ4OFPDjAy8IzZ-dltJ2D8X06_DSP4"
-)
+//let supabase = SupabaseClient(
+//    supabaseURL: URL(string: "https://snnnvsfkhmujbpkdnynq.supabase.co")!,
+//    supabaseKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNubm52c2ZraG11amJwa2RueW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MDAyMjMsImV4cCI6MjA1ODM3NjIyM30.OBJQ0aIqSEGHASQ4OFPDjAy8IzZ-dltJ2D8X06_DSP4"
+//)
 
 class SupabaseAPIClient {
     static let shared = SupabaseAPIClient()

@@ -20,6 +20,13 @@ struct User {
     var expenses: [Expense]?
     var allowance : [Allowance]?
 }
+struct UserInsert: Encodable {
+    let id: Int
+    let email: String
+    let fullname: String
+    let password: String
+    let is_verified: Bool
+}
 
 
 
@@ -107,20 +114,49 @@ class UserDataModel {
     }
     
     func createUser(email: String, fullname: String, password: String) -> User {
-         let newId = (users.map { $0.id }.max() ?? 0) + 1
-         let newUser = User(
-             id: newId,
-             email: email,
-             fullname: fullname,
-             password: password,
-             isVerified: false,
-             badges: [],
-             currentGoal: nil,
-             expenses: []
-         )
-         users.append(newUser)
-         return newUser
-     }
+        let newId = (users.map { $0.id }.max() ?? 0) + 1
+
+        let newUser = User(
+            id: newId,
+            email: email,
+            fullname: fullname,
+            password: password,
+            isVerified: false,
+            badges: [],
+            currentGoal: nil,
+            expenses: []
+        )
+
+        users.append(newUser)
+
+        // ✅ Only insert the clean version
+        Task {
+            do {
+                let client = SupabaseAPIClient.shared.supabaseClient
+
+                let insertData = UserInsert(
+                    id: newId,
+                    email: email,
+                    fullname: fullname,
+                    password: password,
+                    is_verified: false
+                )
+
+                try await client
+                    .from("users")
+                    .insert([insertData]) // ✅ correct
+                    .execute()
+
+                print("✅ Inserted clean user into Supabase.")
+            } catch {
+                print("❌ Supabase insert failed: \(error)")
+            }
+        }
+
+        return newUser
+    }
+
+
 
 
 

@@ -108,6 +108,7 @@
 				DB3392B42D2F9205000ED909 /* App_MStrat_8 */,
 				6B098BF02D002DD6006D4C4D /* App_MStrat_8Tests */,
 				6B098BFA2D002DD6006D4C4D /* App_MStrat_8UITests */,
+				DB4103FA2DA64F7D00378BD2 /* Frameworks */,
 				6B098BD82D002DD4006D4C4D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -120,6 +121,13 @@
 				6B098BF72D002DD6006D4C4D /* App_MStrat_8UITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DB4103FA2DA64F7D00378BD2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

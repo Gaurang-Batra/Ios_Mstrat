@@ -50,15 +50,15 @@ class GoalViewController: UIViewController {
         )
 
         do {
-            let response = try await supabase.database
+            let client = SupabaseAPIClient.shared.supabaseClient
+            let response = try await client
                 .from("goals")
-                .insert(supabaseGoal)
+                .insert([supabaseGoal])
                 .execute()
-            print("Goal saved to Supabase: \(response)")
+            print("✅ Goal saved to Supabase: \(response)")
         } catch {
-            print("Error saving goal: \(error.localizedDescription)")
+            print("❌ Error saving goal: \(error.localizedDescription)")
         }
     }
-
-
 }
+    
