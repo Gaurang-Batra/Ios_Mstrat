@@ -25,7 +25,7 @@ class ReoccuringTableViewCell: UITableViewCell {
         guard var expense = expense else { return }
 
         if !sender.isOn {
-            expense.isRecurring = false
+            expense.is_recurring = false
             expense.duration = nil // Remove the duration when turning off recurring
         }
 

@@ -1,21 +1,17 @@
 import UIKit
 import Supabase
 
-struct SupabaseGoal: Codable {
-    var title: String
-    var amount: Int
-    var deadline: Date
-    var savings: Int?
-}
-
 class GoalViewController: UIViewController {
     @IBOutlet weak var savebutton: UIBarButtonItem!
     @IBOutlet weak var Goaltitletextfield: UITextField!
     @IBOutlet weak var GoalAmount: UITextField!
     @IBOutlet weak var Goaldeadline: UIDatePicker!
+    
+    var userId: Int?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("This is in the GoalViewController, userId: \(userId ?? -1)")
     }
 
     @IBAction func cancelbutton(_ sender: Any) {
@@ -32,33 +28,17 @@ class GoalViewController: UIViewController {
         let deadline = Goaldeadline.date
         let newGoal = Goal(title: title, amount: amount, deadline: deadline, savings: 0)
         
+        // Add to local model
         GoalDataModel.shared.addGoal(newGoal)
+        
+        // Notify for UI updates elsewhere
         NotificationCenter.default.post(name: NSNotification.Name("GoalAdded"), object: nil, userInfo: ["goalAmount": amount])
 
+        // Save all current goals to Supabase
         Task {
-            await saveGoalToSupabase(goal: newGoal)
+            await GoalDataModel.shared.saveToSupabase(userId: userId)
         }
 
         self.dismiss(animated: true, completion: nil)
     }
-    func saveGoalToSupabase(goal: Goal) async {
-        let supabaseGoal = SupabaseGoal(
-            title: goal.title,
-            amount: goal.amount,
-            deadline: goal.deadline,
-            savings: goal.savings ?? 0
-        )
-
-        do {
-            let client = SupabaseAPIClient.shared.supabaseClient
-            let response = try await client
-                .from("goals")
-                .insert([supabaseGoal])
-                .execute()
-            print("✅ Goal saved to Supabase: \(response)")
-        } catch {
-            print("❌ Error saving goal: \(error.localizedDescription)")
-        }
-    }
 }
-    

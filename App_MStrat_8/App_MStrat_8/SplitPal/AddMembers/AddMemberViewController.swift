@@ -52,8 +52,8 @@ class AddMemberViewController: UIViewController, UITableViewDelegate, UITableVie
     // MARK: - AddMemberCellDelegate
 
     func didTapInviteButton(for user: User) {
-        if !selectedMembers.contains(user.id) {
-            selectedMembers.append(user.id)
+        if !selectedMembers.contains(user.id ?? 0) {
+            selectedMembers.append(user.id ?? 0)
             print("Selected Members: \(selectedMembers)")
         } else {
             // Remove the user if they are already in the list

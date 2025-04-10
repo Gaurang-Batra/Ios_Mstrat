@@ -17,7 +17,7 @@ class ReoccuringTableViewController: UITableViewController {
     }
 
     func loadRecurringExpenses() {
-        recurringExpenses = ExpenseDataModel.shared.getAllExpenses().filter { $0.isRecurring }
+        recurringExpenses = ExpenseDataModel.shared.getAllExpenses().filter { $0.is_recurring }
         tableView.reloadData()
     }
 
@@ -35,8 +35,8 @@ class ReoccuringTableViewController: UITableViewController {
         }
 
         let expense = recurringExpenses[indexPath.row]
-        cell.Reoccuringname.text = expense.itemName
-        cell.ReoccuingSwitch.isOn = expense.isRecurring
+        cell.Reoccuringname.text = expense.item_name
+        cell.ReoccuingSwitch.isOn = expense.is_recurring
         cell.expense = expense
         cell.updateExpense = { [weak self] updatedExpense in
             self?.updateExpense(updatedExpense)

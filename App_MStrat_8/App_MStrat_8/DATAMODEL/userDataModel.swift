@@ -8,12 +8,12 @@
 import Foundation
 import Supabase
 //user-----------
-struct User {
+struct User:Codable {
     let id: Int
     var email: String
     var fullname: String
     var password: String
-    var isVerified: Bool?
+    var is_verified: Bool?
     var badges: [String]?
     var currentGoal: Goal?
     var groups : [Int ]?
@@ -35,7 +35,7 @@ let firstUser = User(
     email: "ankush@gmail.com",
     fullname: "John Doe",
     password: "9",
-    isVerified: true,
+    is_verified: true,
     badges: [],
     currentGoal: nil,
     groups: [1,2],
@@ -46,7 +46,7 @@ let secondUser = User(
     email: "janesmith@example.com",
     fullname: "Jane Smith",
     password: "password456",
-    isVerified: false,
+    is_verified: false,
     badges: [],
     currentGoal: nil,
     expenses: []
@@ -56,7 +56,7 @@ let thirdUser = User(
     email: "alicej@example.com",
     fullname: "Alice Johnson",
     password: "password789",
-    isVerified: true,
+    is_verified: true,
     badges: [],
     currentGoal: nil,
     expenses: []
@@ -114,14 +114,14 @@ class UserDataModel {
     }
     
     func createUser(email: String, fullname: String, password: String) -> User {
-        let newId = (users.map { $0.id }.max() ?? 0) + 1
+        let newId = (users.map { $0.id ?? 0 }.max() ?? 0) + 1
 
         let newUser = User(
             id: newId,
             email: email,
             fullname: fullname,
             password: password,
-            isVerified: false,
+            is_verified: false,
             badges: [],
             currentGoal: nil,
             expenses: []
@@ -134,7 +134,7 @@ class UserDataModel {
             do {
                 let client = SupabaseAPIClient.shared.supabaseClient
 
-                let insertData = UserInsert(
+                let insertData = User(
                     id: newId,
                     email: email,
                     fullname: fullname,

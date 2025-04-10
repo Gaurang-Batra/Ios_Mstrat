@@ -20,7 +20,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     var searchUsers: [User] = [] // To hold the filtered users
     var selectedMembers: [Int] = []
     
-    var userId : Int?
+    var userId : Int? = 1
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -103,20 +103,18 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     }
 
     @IBAction func createGroupButtonTapped(_ sender: Any) {
-
-
-        guard let groupName = textField.text, !groupName.isEmpty, let selectedImage = selectedImage else {
+        guard let groupName = textField.text,
+              !groupName.isEmpty,
+              let selectedImage = selectedImage else {
             return
         }
 
         Task {
             do {
-                // Check if group exists
-                let allGroups = try await GroupDataModel.shared.getAllGroups()
+                let allGroups = GroupDataModel.shared.getAllGroups()
                 let groupExists = allGroups.contains { $0.groupName.lowercased() == groupName.lowercased() }
-                
+
                 if groupExists {
-                    // Show alert on main thread
                     DispatchQueue.main.async {
                         let alert = UIAlertController(
                             title: "Group Already Exists",
@@ -128,43 +126,23 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
                     }
                     return
                 }
-                
-                // Create group
+
+                // Create group locally
                 GroupDataModel.shared.createGroup(groupName: groupName, category: selectedImage, members: selectedMembers)
-                
-                // Dismiss view controller
+
+                // Save group to Supabase
+                await GroupDataModel.shared.saveGroupToSupabase(userId: userId)
+
+                // Dismiss the view controller
                 DispatchQueue.main.async {
                     self.dismiss(animated: true, completion: nil)
                     self.navigationController?.popViewController(animated: true)
                 }
+
             } catch {
-                print("Error checking groups: \(error)")
+                print("❌ Error creating group: \(error)")
             }
         }
-
-
-        // Check if a group with the same name already exists
-        let allGroups = GroupDataModel.shared.getAllGroups()
-        let groupExists = allGroups.contains { $0.groupName.lowercased() == groupName.lowercased() }
-        
-        if groupExists {
-            // Show an alert to inform the user
-            let alert = UIAlertController(
-                title: "Group Already Exists",
-                message: "A group with the name '\(groupName)' already exists. Please choose a different name.",
-                preferredStyle: .alert
-            )
-            
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-        
-        // If we get here, the group doesn't exist yet, so create it
-        GroupDataModel.shared.createGroup(groupName: groupName, category: selectedImage, members: selectedMembers)
-        self.dismiss(animated: true, completion: nil)
-        navigationController?.popViewController(animated: true)
-
     }
 
 

@@ -1,5 +1,5 @@
 import UIKit
-
+import Supabase
 class LoginViewController: UIViewController {
     
     @IBOutlet weak var emailTextField: UITextField!
@@ -81,119 +81,90 @@ class LoginViewController: UIViewController {
     
   
     @IBAction func loginButtonTapped(_ sender: UIButton) {
-        
-  
-            guard let email = emailTextField.text, !email.isEmpty else {
-                showAlert(message: "Please enter your email.")
-                return
-            }
+        guard let email = emailTextField.text, !email.isEmpty else {
+            showAlert(message: "Please enter your email.")
+            return
+        }
 
-            guard let password = passwordTextField.text, !password.isEmpty else {
-                showAlert(message: "Please enter your password.")
-                return
-            }
+        guard let password = passwordTextField.text, !password.isEmpty else {
+            showAlert(message: "Please enter your password.")
+            return
+        }
 
-             if let user = UserDataModel.shared.getAllUsers().first(where: { $0.email == email && $0.password == password }) {
-                print("User found: \(user.fullname) \(user.id)")
+        Task {
+            do {
+                let client = SupabaseAPIClient.shared.supabaseClient
 
-                guard let storyboard = storyboard else { return }
+                let response = try await client
+                    .from("users")
+                    .select("*")
+                    .eq("email", value: email)
+                    .eq("password", value: password)
+                    .single()
+                    .execute()
 
-                if let tabBarController = storyboard.instantiateViewController(withIdentifier: "tabbar") as? UITabBarController,
-                   let viewControllers = tabBarController.viewControllers {
-                    
-                    for (index, viewController) in viewControllers.enumerated() {
-                        // Handle navigation controllers if needed
-                        if let navController = viewController as? UINavigationController,
-                           let rootViewController = navController.viewControllers.first {
-                            
-                            if let homeVC = rootViewController as? homeViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to homeViewController at index \(index): \(user.id)")
-                            }
-                            if let homeVC = rootViewController as? SplitpalViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to SplitpalViewController at index \(index): \(user.id)")
-                            }
-                            if let homeVC = rootViewController as? CensusViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to CensusViewController at index \(index): \(user.id)")
-                            }
-                            
-                            
-                            if let profileVC = rootViewController as? PersonalInformationViewController {
-                                profileVC.userId = user.id
-                                print("UserId passed to PersonalInformationViewController at index \(index): \(user.id)")
-                            }
-                        } else {
-                            if let homeVC = viewController as? homeViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to homeViewController at index \(index): \(user.id)")
-                            }
-                            if let homeVC = viewController as? SplitpalViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to SplitpalViewController at index \(index): \(user.id)")
-                            }
-                            if let homeVC = viewController as? CensusViewController {
-                                homeVC.userId = user.id
-                                print("UserId passed to CensusViewController at index \(index): \(user.id)")
-                            }
-                            
-                            
-                            
-                            if let profileVC = viewController as? PersonalInformationViewController {
-                                profileVC.userId = user.id
-                                print("UserId passed to PersonalInformationViewController at index \(index): \(user.id)")
-                            }
-                        }
-                    }
+                // ✅ No need for optional unwrap — just decode directly
+                let user = try JSONDecoder().decode(User.self, from: response.data)
 
-                    // Present the tab bar controller (or push it if within a navigation controller)
-                    if let navController = navigationController {
-                        navController.pushViewController(tabBarController, animated: true)
-                    } else {
-                        // If there's no navigation controller, present it modally
-                        tabBarController.modalPresentationStyle = .fullScreen
-                        present(tabBarController, animated: true)
-                    }
+                print("✅ Logged in user: \(user.fullname)")
+
+                DispatchQueue.main.async {
+                    self.navigateToTabBar(with: user)
                 }
-            } else {
-                showAlert(message: "Invalid email or password.")
-            }
-        
-//        guard let email = emailTextField.text, !email.isEmpty else {
-//            showAlert(message: "Please enter your email.")
-//            return
-//        }
-//
-//        guard let password = passwordTextField.text, !password.isEmpty else {
-//            showAlert(message: "Please enter your password.")
-//            return
-//        }
-//
-//        // Try to find the user with matching email and password
-//        if let user = UserDataModel.shared.getAllUsers().first(where: { $0.email == email && $0.password == password }) {
-//            print("User found: \(user.fullname) \(user.id)")
-//
-//            guard let storyboard = storyboard else { return }
-//
-//            // Instantiate the UITabBarController using its identifier "tabBar"
 
-//                    // 2. Set the userId for Profile View (second view controller)
-//                    if let profileVC = viewControllers.first(where: { $0 is PersonalInformationViewController }) as? PersonalInformationViewController {
-//                        profileVC.userId = user.id
-//                        print("UserId passed to profileVC: \(profileVC.userId ?? -1)")
-//                    }
-//                }
-//
-//                // Push the UITabBarController onto the navigation stack
-//                navigationController?.pushViewController(tabBarController, animated: true)
-//
-//            }
-//
-//        } else {
-//            showAlert(message: "Invalid email or password.")
-//        }
+            } catch {
+                print("❌ Login failed: \(error)")
+                DispatchQueue.main.async {
+                    self.showAlert(message: "Invalid email or password.")
+                }
+            }
+        }
     }
+
+
+    func navigateToTabBar(with user: User) {
+        guard let storyboard = storyboard else { return }
+
+        if let tabBarController = storyboard.instantiateViewController(withIdentifier: "tabbar") as? UITabBarController,
+           let viewControllers = tabBarController.viewControllers {
+            
+            for (index, viewController) in viewControllers.enumerated() {
+                let targetVC: UIViewController
+
+                if let navController = viewController as? UINavigationController,
+                   let rootVC = navController.viewControllers.first {
+                    targetVC = rootVC
+                } else {
+                    targetVC = viewController
+                }
+
+                switch targetVC {
+                case let homeVC as homeViewController:
+                    homeVC.userId = user.id
+                    print("UserId passed to homeViewController at index \(index): \(user.id)")
+                case let splitVC as SplitpalViewController:
+                    splitVC.userId = user.id
+                    print("UserId passed to SplitpalViewController at index \(index): \(user.id)")
+                case let censusVC as CensusViewController:
+                    censusVC.userId = user.id
+                    print("UserId passed to CensusViewController at index \(index): \(user.id)")
+                case let profileVC as PersonalInformationViewController:
+                    profileVC.userId = user.id
+                    print("UserId passed to PersonalInformationViewController at index \(index): \(user.id)")
+                default:
+                    break
+                }
+            }
+
+            if let navController = navigationController {
+                navController.pushViewController(tabBarController, animated: true)
+            } else {
+                tabBarController.modalPresentationStyle = .fullScreen
+                present(tabBarController, animated: true)
+            }
+        }
+    }
+
 
 
 

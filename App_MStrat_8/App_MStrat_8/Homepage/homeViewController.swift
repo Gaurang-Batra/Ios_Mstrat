@@ -156,6 +156,16 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
 
         AddExpense.text = nil
     }
+    @IBAction func expenseButtonTapped(_ sender: UIButton) {
+        performSegue(withIdentifier: "AddExpenseScreen", sender: self)
+    }
+    
+    @IBAction func AddGoalTapped(_ sender: UIButton) {
+        performSegue(withIdentifier: "showGoalViewController", sender: self)
+    }
+
+
+
 
 
     @objc private func updateTotalExpense() {
@@ -326,4 +336,26 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         alertController.addAction(okAction)
         present(alertController, animated: true, completion: nil)
     }
+    
+  
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "AddExpenseScreen" {
+            // The destination is a UINavigationController
+            if let navController = segue.destination as? UINavigationController,
+               let destinationVC = navController.viewControllers.first as? CategoryNameViewController {
+                destinationVC.userId = self.userId
+            }
+        }
+        else if segue.identifier == "showGoalViewController" {
+            // The destination is a UINavigationController
+            if let navController = segue.destination as? UINavigationController,
+               let destinationVC = navController.viewControllers.first as? GoalViewController {
+                destinationVC.userId = self.userId
+            }
+        }
+    }
+
+
+    
+    
 }

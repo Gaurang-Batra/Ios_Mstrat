@@ -12,7 +12,7 @@ extension Notification.Name {
 }
 
 
-struct ExpenseSplitForm {
+struct ExpenseSplitForm: Encodable {
     var name: String
     var category: String
     var totalAmount: Double
@@ -24,7 +24,30 @@ struct ExpenseSplitForm {
     var payee: [Int]
     var date: Date
     var ismine: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case name, category, totalAmount, paidBy, groupId, splitOption, splitAmounts, payee, date, ismine
+       
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(category, forKey: .category)
+        try container.encode(totalAmount, forKey: .totalAmount)
+        try container.encode(paidBy, forKey: .paidBy)
+        try container.encodeIfPresent(groupId, forKey: .groupId)
+        try container.encodeIfPresent(splitOption, forKey: .splitOption)
+        try container.encode(splitAmounts, forKey: .splitAmounts)
+        try container.encode(payee, forKey: .payee)
+        try container.encode(ismine, forKey: .ismine)
+
+       
+        let dateString = ISO8601DateFormatter().string(from: date)
+        try container.encode(dateString, forKey: .date)
+    }
 }
+
 
 enum SplitOption : String, Codable{
     case equally

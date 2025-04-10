@@ -15,10 +15,14 @@ class CategoryNameViewController: UIViewController {
     private let categories: [ExpenseCategory] = [.food, .grocery, .fuel, .bills, .travel, .other]
     private var selectedCategory: ExpenseCategory? // To store the selected category
     private var selectedImage: UIImage?
+    
+    var userId: Int?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print ("this id is in add expense \(userId)")
         
         recurringSwitch.isOn = false
         deadlineview.isHidden = true
@@ -117,31 +121,35 @@ class CategoryNameViewController: UIViewController {
     @IBAction func addexpenseTapped(_ sender: Any) {
         guard let itemName = itemNameTextField.text, !itemName.isEmpty,
               let amountText = amountTextField.text, let amount = Int(amountText),
-              let selectedCategory = selectedCategory,
-              let selectedImage = selectedImage else {
+              let selectedCategory = selectedCategory else {
             print("Please provide valid input.")
             return
         }
 
         let isRecurring = recurringSwitch.isOn
         let duration = isRecurring ? datePicker.date : nil
-
-        // Automatically use today's date for the expense
         let today = Date()
 
-        ExpenseDataModel.shared.addExpense(
+        // Get the created expense
+        let newExpense = ExpenseDataModel.shared.addExpense(
             itemName: itemName,
             amount: amount,
-            image: selectedImage,
             category: selectedCategory,
             date: today,
             duration: duration,
-            isRecurring: isRecurring
+            isRecurring: isRecurring,
+            userId: userId
         )
+
+        // Save to Supabase
+        Task {
+            await ExpenseDataModel.shared.saveExpenseToSupabase(newExpense)
+        }
 
         self.dismiss(animated: true) {
             NotificationCenter.default.post(name: NSNotification.Name("ExpenseAdded"), object: nil)
         }
     }
+
 
 }

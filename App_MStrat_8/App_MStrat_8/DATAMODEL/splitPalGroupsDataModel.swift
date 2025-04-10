@@ -12,13 +12,43 @@ extension Notification.Name {
     static let newGroupAdded = Notification.Name("newGroupAdded")
 }
 
-struct Group {
+struct Group: Encodable {
     var id: Int
     var groupName: String
     var category: UIImage?
     var members: [Int]
     var expenses: [ExpenseSplitForm]?
+    var user_id : Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, groupName, category, members, expenses
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(id, forKey: .id)
+        try container.encode(groupName, forKey: .groupName)
+        try container.encode(members, forKey: .members)
+        try container.encodeIfPresent(expenses, forKey: .expenses)
+
+        if let imageData = category?.jpegData(compressionQuality: 0.8) {
+            let base64String = imageData.base64EncodedString()
+            try container.encode(base64String, forKey: .category)
+        } else {
+            try container.encodeNil(forKey: .category)
+        }
+    }
 }
+struct SupabaseGroup: Encodable {
+    var id: Int
+    var group_name: String
+    var category: String? // base64 string
+    var members: [Int]
+    var expenses: Data? // encoded JSON
+    var user_id: Int?
+}
+
 
 class GroupDataModel {
     private var groups: [Group] = []
@@ -28,9 +58,9 @@ class GroupDataModel {
 
     private init() {
         // Sample users
-        users.append(User(id: 1, email: "user1@example.com", fullname: "John", password: "password", isVerified: true, badges: [], currentGoal: nil, expenses: []))
-        users.append(User(id: 2, email: "user2@example.com", fullname: "Steve", password: "password", isVerified: true, badges: [], currentGoal: nil, expenses: []))
-        users.append(User(id: 3, email: "user3@example.com", fullname: "Jack", password: "password", isVerified: true, badges: [], currentGoal: nil, expenses: []))
+        users.append(User(id: 1, email: "user1@example.com", fullname: "John", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
+        users.append(User(id: 2, email: "user2@example.com", fullname: "Steve", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
+        users.append(User(id: 3, email: "user3@example.com", fullname: "Jack", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
 
         // Sample groups with expenses
         let expense1 = ExpenseSplitForm(
@@ -78,6 +108,42 @@ class GroupDataModel {
             expenses: [expense2]
         ))
     }
+    func saveGroupToSupabase(userId: Int?) async {
+        do {
+            let client = SupabaseAPIClient.shared.supabaseClient
+
+            let formattedGroups: [SupabaseGroup] = try groups.map { group in
+                var base64Image: String? = nil
+                if let image = group.category,
+                   let imageData = image.jpegData(compressionQuality: 0.8) {
+                    base64Image = imageData.base64EncodedString()
+                }
+
+                let encodedExpenses = try? JSONEncoder().encode(group.expenses)
+
+                return SupabaseGroup(
+                    id: group.id,
+                    group_name: group.groupName,
+                    category: base64Image,
+                    members: group.members,
+                    expenses: encodedExpenses,
+                    user_id: userId
+                )
+            }
+
+            let response = try await client
+                .from("groups")
+                .insert(formattedGroups)
+                .execute()
+
+            print("✅ Groups saved to Supabase: \(response)")
+        } catch {
+            print("❌ Error saving groups: \(error.localizedDescription)")
+        }
+    }
+
+
+    
     
     func createGroup(groupName: String, category: UIImage?, members: [Int]) {
         // Ensure that members array is not empty

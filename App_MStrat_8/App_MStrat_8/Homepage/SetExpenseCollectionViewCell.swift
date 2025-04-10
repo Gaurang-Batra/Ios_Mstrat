@@ -16,7 +16,7 @@ class SetExpenseCollectionViewCell: UICollectionViewCell {
     
     func configure(with expense: Expense) {
             categoryimage.image = expense.image
-            titlelabel.text = expense.itemName
+            titlelabel.text = expense.item_name
             pricelabel.text = "Rs.\(expense.amount)"
             
             // Optional styling
