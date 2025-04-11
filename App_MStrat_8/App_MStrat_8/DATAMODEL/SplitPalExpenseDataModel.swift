@@ -12,7 +12,7 @@ extension Notification.Name {
 }
 
 
-struct ExpenseSplitForm: Encodable {
+struct ExpenseSplitForm: Codable {
     var name: String
     var category: String
     var totalAmount: Double

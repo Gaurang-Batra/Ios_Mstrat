@@ -40,7 +40,7 @@ struct Group: Encodable {
         }
     }
 }
-struct SupabaseGroup: Encodable {
+struct SupabaseGroup: Codable {
     var id: Int
     var group_name: String
     var category: String? // base64 string

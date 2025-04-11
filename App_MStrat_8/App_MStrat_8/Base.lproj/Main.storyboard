@@ -70,8 +70,8 @@
                                     <constraint firstAttribute="height" constant="104" id="Car-qw-Vi4"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="If3-2M-3CG">
-                                <rect key="frame" x="16" y="351" width="369" height="443"/>
+                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="If3-2M-3CG">
+                                <rect key="frame" x="16" y="351" width="369" height="501"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CCt-sV-c0S">
                                         <rect key="frame" x="23" y="91" width="331" height="180"/>
@@ -434,7 +434,7 @@ Try it!</string>
                                                                 <color key="baseForegroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                             </buttonConfiguration>
                                                             <connections>
-                                                                <action selector="settlementButtonTapped:" destination="ALt-kx-NjW" eventType="touchUpInside" id="ZeD-7D-Ut1"/>
+                                                                <action selector="settlementButtonTapped:" destination="ALt-kx-NjW" eventType="touchUpInside" id="Vvn-aw-bus"/>
                                                                 <segue destination="h39-OF-3ru" kind="presentation" identifier="Settlement" id="RmN-Jf-iKz"/>
                                                             </connections>
                                                         </button>
@@ -3370,10 +3370,9 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Jbn-pP-PaK"/>
         <segue reference="slq-dV-Nfy"/>
         <segue reference="axb-SC-zZr"/>
-        <segue reference="HMP-H4-Ezh"/>
+        <segue reference="WJu-5e-rgA"/>
         <segue reference="5Pz-bk-SPw"/>
     </inferredMetricsTieBreakers>
     <resources>

@@ -69,14 +69,14 @@ class ExpenseDataModel {
     }
     
     private func preloadExpenses() {
-        let expenseList = [
-            Expense(id: 1, item_name: "food wash", amount: 1200, date: getDate("2025-04-05"), category: .food, duration: nil, is_recurring: false),
+        let expenseList : [Expense] = [
+
        ]
 
         self.expenses = expenseList
     }
 
-    // 🔄 Modified to return Expense for saving to Supabase
+
     func addExpense(itemName: String, amount: Int, category: ExpenseCategory, date: Date, duration: Date?, isRecurring: Bool, userId: Int? = nil) -> Expense {
         let newId = (expenses.last?.id ?? 0) + 1
         let newExpense = Expense(
@@ -90,7 +90,7 @@ class ExpenseDataModel {
             user_id: userId
         )
         expenses.insert(newExpense, at: 0)
-        print("New expense added: \(newExpense.item_name) with ID \(newExpense.id) on \(newExpense.date). Recurring on: \(newExpense.duration != nil ? "\(newExpense.duration!)" : "N/A"). Is recurring: \(newExpense.is_recurring)")
+        print("New expense added: \(newExpense.item_name) with ID \(String(describing: newExpense.id)) on \(newExpense.date). Recurring on: \(newExpense.duration != nil ? "\(newExpense.duration!)" : "N/A"). Is recurring: \(newExpense.is_recurring)")
         return newExpense
     }
 

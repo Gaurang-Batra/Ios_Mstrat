@@ -167,7 +167,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     // MARK: - UITableViewDelegate Methods
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedGroup = filteredGroups[indexPath.section] // ✅ Correct way
+        let selectedGroup = filteredGroups[indexPath.section] 
         print("Selected group: \(selectedGroup.groupName)")
         performSegue(withIdentifier: "Groupsdetails", sender: self)
     }

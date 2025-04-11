@@ -68,8 +68,8 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     }
 
     func didTapInviteButton(for user: User) {
-        if !selectedMembers.contains(user.id) {
-            selectedMembers.append(user.id)
+        if !selectedMembers.contains(user.id ?? 0) {
+            selectedMembers.append(user.id ?? 0)
             print("Selected Members: \(selectedMembers)")
         } else {
             selectedMembers.removeAll { $0 == user.id }

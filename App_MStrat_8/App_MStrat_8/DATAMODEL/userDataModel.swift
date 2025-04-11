@@ -9,7 +9,7 @@ import Foundation
 import Supabase
 //user-----------
 struct User:Codable {
-    let id: Int
+    let id: Int?
     var email: String
     var fullname: String
     var password: String
@@ -19,13 +19,6 @@ struct User:Codable {
     var groups : [Int ]?
     var expenses: [Expense]?
     var allowance : [Allowance]?
-}
-struct UserInsert: Encodable {
-    let id: Int
-    let email: String
-    let fullname: String
-    let password: String
-    let is_verified: Bool
 }
 
 
@@ -52,7 +45,7 @@ let secondUser = User(
     expenses: []
 )
 let thirdUser = User(
-    id: 3,
+    id: 0,
     email: "alicej@example.com",
     fullname: "Alice Johnson",
     password: "password789",
@@ -129,13 +122,13 @@ class UserDataModel {
 
         users.append(newUser)
 
-        // ✅ Only insert the clean version
+  
         Task {
             do {
                 let client = SupabaseAPIClient.shared.supabaseClient
 
                 let insertData = User(
-                    id: newId,
+                    id: nil,
                     email: email,
                     fullname: fullname,
                     password: password,
@@ -144,14 +137,15 @@ class UserDataModel {
 
                 try await client
                     .from("users")
-                    .insert([insertData]) // ✅ correct
+                    .insert([insertData])
                     .execute()
 
-                print("✅ Inserted clean user into Supabase.")
+                print(" Inserted user into Supabase without ID.")
             } catch {
-                print("❌ Supabase insert failed: \(error)")
+                print(" Supabase insert failed: \(error)")
             }
         }
+
 
         return newUser
     }
