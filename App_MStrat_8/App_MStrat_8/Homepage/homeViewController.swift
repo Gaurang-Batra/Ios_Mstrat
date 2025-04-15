@@ -174,7 +174,10 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         performSegue(withIdentifier: "showGoalViewController", sender: self)
     }
 
-
+    @IBAction func AddaAllowancetappde(_ sender: Any) {
+        performSegue(withIdentifier: "AddAllowance", sender: self)
+    }
+    
 
 
 
@@ -360,6 +363,14 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
             // The destination is a UINavigationController
             if let navController = segue.destination as? UINavigationController,
                let destinationVC = navController.viewControllers.first as? GoalViewController {
+                destinationVC.userId = self.userId
+            }
+        }
+        
+        else if segue.identifier == "AddAllowance" {
+            // The destination is a UINavigationController
+            if let navController = segue.destination as? UINavigationController,
+               let destinationVC = navController.viewControllers.first as? AllowanceViewController {
                 destinationVC.userId = self.userId
             }
         }

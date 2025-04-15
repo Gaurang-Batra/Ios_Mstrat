@@ -63,7 +63,13 @@ class AllowanceDataModel {
         updatedAllowance.deductAmount(expenseAmount)
         allowances[index] = updatedAllowance
     }
-    
+    func saveAllowanceToBackend(_ allowance: Allowance) async throws {
+           let client = SupabaseAPIClient.shared.supabaseClient
+           try await client
+               .from("allowances")
+               .insert([allowance])
+               .execute()
+       }
  
 
 }
