@@ -29,7 +29,7 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     var userId : Int?
     
     @IBAction func addedmemberbuttontapped(_ sender: UIButton) {
-        print(groupItem?.groupName)
+        print(groupItem?.group_name)
         print(groupItem?.id)
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
            filterBalances()
@@ -48,25 +48,43 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         }
 
         var memberNames: [String] = []
+        
+        Task {
+               var memberNames: [String] = []
 
-        for userId in group.members {
-            if let user = UserDataModel.shared.getUser(by: userId) {
-                memberNames.append(user.fullname)
-            }
-        }
+               for userId in group.members {
+                   if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                       memberNames.append(user.fullname)
+                   }
+               }
 
-        let limitedNames = memberNames.prefix(1).joined(separator: ", ")
-        let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
+               let limitedNames = memberNames.prefix(1).joined(separator: ", ")
+               let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
 
-        membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
+               await MainActor.run {
+                   self.membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
+               }
+           }
+        
+
+//        for userId in group.members {
+//            if let user = UserDataModel.shared.getUser(by: userId) {
+//                memberNames.append(user.fullname)
+//            }
+//        }
+//
+//        let limitedNames = memberNames.prefix(1).joined(separator: ", ")
+//        let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
+//
+//        membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
 
 
 
-        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id)
+        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id ?? 0)
         
        filterBalances()
         
-        groupnamelabel.text = group.groupName
+        groupnamelabel.text = group.group_name
         groupimageoutlet.image = group.category
         
         GroupInfoView.layer.cornerRadius = 20

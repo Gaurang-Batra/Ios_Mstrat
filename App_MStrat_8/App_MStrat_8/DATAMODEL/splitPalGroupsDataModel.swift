@@ -7,47 +7,77 @@
 //
 import Foundation
 import UIKit
+import Supabase
 
 extension Notification.Name {
     static let newGroupAdded = Notification.Name("newGroupAdded")
 }
 
-struct Group: Encodable {
-    var id: Int
-    var groupName: String
+
+
+
+struct Group: Codable {
+    var id: Int?
+    var group_name: String
     var category: UIImage?
     var members: [Int]
     var expenses: [ExpenseSplitForm]?
     var user_id : Int?
 
     enum CodingKeys: String, CodingKey {
-        case id, groupName, category, members, expenses
-    }
+          case id, group_name, category, members, expenses, user_id
+      }
 
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+      func encode(to encoder: Encoder) throws {
+          var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(id, forKey: .id)
-        try container.encode(groupName, forKey: .groupName)
-        try container.encode(members, forKey: .members)
-        try container.encodeIfPresent(expenses, forKey: .expenses)
+          try container.encodeIfPresent(id, forKey: .id)
+          try container.encode(group_name, forKey: .group_name)
+          try container.encode(members, forKey: .members)
+          try container.encodeIfPresent(expenses, forKey: .expenses)
+          try container.encodeIfPresent(user_id, forKey: .user_id)
 
-        if let imageData = category?.jpegData(compressionQuality: 0.8) {
-            let base64String = imageData.base64EncodedString()
-            try container.encode(base64String, forKey: .category)
-        } else {
-            try container.encodeNil(forKey: .category)
-        }
-    }
+          if let imageData = category?.jpegData(compressionQuality: 0.8) {
+              let base64String = imageData.base64EncodedString()
+              try container.encode(base64String, forKey: .category)
+          } else {
+              try container.encodeNil(forKey: .category)
+          }
+      }
+
+      init(from decoder: Decoder) throws {
+          let container = try decoder.container(keyedBy: CodingKeys.self)
+
+          id = try container.decodeIfPresent(Int.self, forKey: .id)
+          group_name = try container.decode(String.self, forKey: .group_name)
+          members = try container.decode([Int].self, forKey: .members)
+          expenses = try container.decodeIfPresent([ExpenseSplitForm].self, forKey: .expenses)
+          user_id = try container.decodeIfPresent(Int.self, forKey: .user_id)
+
+          if let base64String = try? container.decode(String.self, forKey: .category),
+             let imageData = Data(base64Encoded: base64String),
+             let image = UIImage(data: imageData) {
+              category = image
+          } else {
+              category = nil
+          }
+      }
+
+      init(id: Int? = nil, group_name: String, category: UIImage?, members: [Int], expenses: [ExpenseSplitForm]? = nil, user_id: Int? = nil) {
+          self.id = id
+          self.group_name = group_name
+          self.category = category
+          self.members = members
+          self.expenses = expenses
+          self.user_id = user_id
+      }
 }
-struct SupabaseGroup: Codable {
-    var id: Int
-    var group_name: String
-    var category: String? // base64 string
-    var members: [Int]
-    var expenses: Data? // encoded JSON
-    var user_id: Int?
+
+struct UserGroupLink: Codable {
+    let user_id: Int
+    let group_id: Int
 }
+
 
 
 class GroupDataModel {
@@ -57,106 +87,221 @@ class GroupDataModel {
     static let shared = GroupDataModel()
 
     private init() {
-        // Sample users
-        users.append(User(id: 1, email: "user1@example.com", fullname: "John", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
-        users.append(User(id: 2, email: "user2@example.com", fullname: "Steve", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
-        users.append(User(id: 3, email: "user3@example.com", fullname: "Jack", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
-
-        // Sample groups with expenses
-        let expense1 = ExpenseSplitForm(
-            name: "Dinner with Friends",
-            category: "Food",
-            totalAmount: 100.0,
-            paidBy: "John Doe",
-            groupId: 1,
-            image: UIImage(named: "icons8-holiday-50")!,
-            splitOption: .equally,
-            splitAmounts: ["John Doe": 200.0, "Alice Johnson": 300.0],
-            payee: [1],
-            date: Date(),
-            ismine: true
-        )
-        
-        let expense2 = ExpenseSplitForm(
-            name: "Hotel Stay",
-            category: "Accommodation",
-            totalAmount: 300.0,
-            paidBy: "Steve",
-            groupId: 2,
-            image: UIImage(named: "icons8-holiday-50")!,
-            splitOption: .unequally,
-            splitAmounts: ["Jack": 100.0, "Steve": 200.0],
-            payee:[ 4],
-            date: Date(),
-            
-            ismine: false
-        )
-        
-        // Sample groups with expenses
-        groups.append(Group(
-            id: 1, // Added an ID for each group
-            groupName: "Tech Lovers",
-            category: UIImage(named: "icons8-holiday-50"),
-            members: [1, 2],
-            expenses: [expense1]
-        ))
-        groups.append(Group(
-            id: 2, // Added an ID for each group
-            groupName: "Travel Enthusiasts",
-            category: UIImage(named: "icons8-holiday-50"),
-            members: [3],
-            expenses: [expense2]
-        ))
+//        // Sample users
+//        users.append(User(id: 1, email: "user1@example.com", fullname: "John", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
+//        users.append(User(id: 2, email: "user2@example.com", fullname: "Steve", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
+//        users.append(User(id: 3, email: "user3@example.com", fullname: "Jack", password: "password", is_verified: true, badges: [], currentGoal: nil, expenses: []))
+//
+//        // Sample groups with expenses
+//        let expense1 = ExpenseSplitForm(
+//            name: "Dinner with Friends",
+//            category: "Food",
+//            totalAmount: 100.0,
+//            paidBy: "John Doe",
+//            groupId: 1,
+//            image: UIImage(named: "icons8-holiday-50")!,
+//            splitOption: .equally,
+//            splitAmounts: ["John Doe": 200.0, "Alice Johnson": 300.0],
+//            payee: [1],
+//            date: Date(),
+//            ismine: true
+//        )
+//        
+//        let expense2 = ExpenseSplitForm(
+//            name: "Hotel Stay",
+//            category: "Accommodation",
+//            totalAmount: 300.0,
+//            paidBy: "Steve",
+//            groupId: 2,
+//            image: UIImage(named: "icons8-holiday-50")!,
+//            splitOption: .unequally,
+//            splitAmounts: ["Jack": 100.0, "Steve": 200.0],
+//            payee:[ 4],
+//            date: Date(),
+//            
+//            ismine: false
+//        )
+//        
+//        // Sample groups with expenses
+//        groups.append(Group(
+//            id: 1, // Added an ID for each group
+//            groupName: "Tech ",
+//            category: UIImage(named: "icons8-holiday-50"),
+//            members: [1, 2],
+//            expenses: [expense1]
+//        ))
+//        groups.append(Group(
+//            id: 2, // Added an ID for each group
+//            groupName: "Travel Enthusiasts",
+//            category: UIImage(named: "icons8-holiday-50"),
+//            members: [3],
+//            expenses: [expense2]
+//        ))
     }
-    func saveGroupToSupabase(userId: Int?) async {
+    
+    func addGroupToUser(userId: Int, groupId: Int) {
+        guard let index = users.firstIndex(where: { $0.id == userId }) else { return }
+        
+        if users[index].groups == nil {
+            users[index].groups = []
+        }
+
+        if !users[index].groups!.contains(groupId) {
+            users[index].groups!.append(groupId)
+            print("Group \(groupId) added to user \(userId)")
+        }
+    }
+
+    func addUsersToGroupInUserGroupsTable(groupId: Int64, userIds: [Int]) async {
+        let client = SupabaseAPIClient.shared.supabaseClient
+        for userId in userIds {
+            let link = UserGroupLink(user_id: userId, group_id: Int(groupId))
+
+            do {
+                // Insert link only if both group and user exist in the respective tables
+                let response = try await client
+                    .database
+                    .from("user_groups")
+                    .insert(link)
+                    .execute()
+
+                print("✅ Linked user \(userId) to group \(groupId)")
+
+            } catch {
+                print("❌ Error linking user \(userId) to group \(groupId): \(error)")
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+    func saveGroupToSupabase(group: Group, userId: Int) async -> Int64? {
         do {
+            var groupToSave = group
+            groupToSave.user_id = userId
+
             let client = SupabaseAPIClient.shared.supabaseClient
 
-            let formattedGroups: [SupabaseGroup] = try groups.map { group in
-                var base64Image: String? = nil
-                if let image = group.category,
-                   let imageData = image.jpegData(compressionQuality: 0.8) {
-                    base64Image = imageData.base64EncodedString()
+            let response = try await client
+                .database
+                .from("groups")
+                .insert(groupToSave, returning: .representation)
+                .select()
+                .execute()
+                
+            // Check if the response contains data
+            let responseData = response.data
+            
+            do {
+                let insertedGroups = try JSONDecoder().decode([Group].self, from: responseData)
+                if let savedGroup = insertedGroups.first, let groupId = savedGroup.id {
+                    print("✅ Group saved with ID: \(groupId)")
+                    return Int64(groupId)
+                } else {
+                    print("❌ No group data found in response")
+                    return nil
                 }
-
-                let encodedExpenses = try? JSONEncoder().encode(group.expenses)
-
-                return SupabaseGroup(
-                    id: group.id,
-                    group_name: group.groupName,
-                    category: base64Image,
-                    members: group.members,
-                    expenses: encodedExpenses,
-                    user_id: userId
-                )
+            } catch {
+                print("❌ Error decoding response: \(error)")
+                return nil
             }
 
-            let response = try await client
-                .from("groups")
-                .insert(formattedGroups)
-                .execute()
-
-            print("✅ Groups saved to Supabase: \(response)")
         } catch {
-            print("❌ Error saving groups: \(error.localizedDescription)")
+            print("❌ Error saving group: \(error)")
+            return nil
+        }
+    }
+
+
+
+
+
+    
+    func handleGroupCreationFlow(groupName: String, category: UIImage?, members: [Int], userId: Int) {
+        Task {
+            if let group = createGroup(groupName: groupName, category: category, members: members) {
+                if let groupId = await saveGroupToSupabase(group: group, userId: userId) {
+                    await addUsersToGroupInUserGroupsTable(groupId: groupId, userIds: members)
+                } else {
+                    print("❌ Failed to save group to Supabase")
+                }
+            }
         }
     }
 
 
     
     
-    func createGroup(groupName: String, category: UIImage?, members: [Int]) {
-        // Ensure that members array is not empty
+    func createGroup(groupName: String, category: UIImage?, members: [Int]) -> Group? {
         if members.isEmpty {
             print("Cannot create a group without members.")
-            return
+            return nil
         }
 
-        let newGroup = Group(id: groups.count + 1, groupName: groupName, category: category, members: members, expenses: nil)
+        let newGroup = Group(id: nil, group_name: groupName, category: category, members: members, expenses: nil)
         groups.insert(newGroup, at: 0)
-        print("New group added: \(newGroup.groupName)")  // Debugging line
-        NotificationCenter.default.post(name: .newGroupAdded, object: nil)  // Notify the ViewController to reload the table view
+                print("New group added: \(newGroup.group_name)")  // Debugging line
+                NotificationCenter.default.post(name: .newGroupAdded, object: nil)
+        return newGroup
     }
+    
+    func getAllGroupsFromSupabase(completion: @escaping ([Group]?, Error?) -> Void) {
+        Task {
+            let client = SupabaseAPIClient.shared.supabaseClient
+            do {
+                // Fetch groups from the "groups" table
+                let response: PostgrestResponse = try await client
+                    .database
+                    .from("groups")
+                    .select()
+                    .execute()
+
+                // Now directly decode response.data into [Group] without checking for nil
+                do {
+                    let groups = try JSONDecoder().decode([Group].self, from: response.data)
+                    completion(groups, nil)
+                } catch {
+                    completion(nil, error)
+                }
+            } catch {
+                completion(nil, error)
+            }
+        }
+    }
+    
+    func fetchGroupsForUser(userId: Int) async -> [Group] {
+        let client = SupabaseAPIClient.shared.supabaseClient
+
+        do {
+            let response: PostgrestResponse<[Group]> = try await client
+                .rpc("get_groups_for_user", params: ["user_id_input": userId])
+                .execute()
+
+            // Return groups sorted by the created_at timestamp in descending order
+            return response.value ?? []
+        } catch {
+            print("❌ Error fetching groups from Supabase: \(error)")
+            return []
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+       
+    
+
     func getAllGroups() -> [Group] {
            return self.groups
        }
@@ -176,10 +321,20 @@ class GroupDataModel {
         if !groups[groupIndex].members.contains(userId) {
             groups[groupIndex].members.append(userId)
             print("User \(userId) added to group \(groupId).")
+
+            // ✅ Add the group to the user locally
+            addGroupToUser(userId: userId, groupId: groupId)
+            
+            // ✅ Update Supabase
+//            Task {
+//                await addUsersToGroupInUserGroupsTable(userId: userId)
+//            }
         } else {
             print("User \(userId) is already a member of the group.")
         }
     }
+
+
 
     // Function to automatically calculate split amounts for equally split expenses
     func calculateEqualSplit(for expense: ExpenseSplitForm, groupMembers: [String]) -> [String: Double] {

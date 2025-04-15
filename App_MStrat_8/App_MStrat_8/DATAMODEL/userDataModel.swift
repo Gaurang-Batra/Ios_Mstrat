@@ -23,67 +23,63 @@ struct User:Codable {
 
 
 
-let firstUser = User(
-    id: 1,
-    email: "ankush@gmail.com",
-    fullname: "John Doe",
-    password: "9",
-    is_verified: true,
-    badges: [],
-    currentGoal: nil,
-    groups: [1,2],
-    expenses: []
-)
-let secondUser = User(
-    id: 2,
-    email: "janesmith@example.com",
-    fullname: "Jane Smith",
-    password: "password456",
-    is_verified: false,
-    badges: [],
-    currentGoal: nil,
-    expenses: []
-)
-let thirdUser = User(
-    id: 0,
-    email: "alicej@example.com",
-    fullname: "Alice Johnson",
-    password: "password789",
-    is_verified: true,
-    badges: [],
-    currentGoal: nil,
-    expenses: []
-)
-//let zerothUser = User(
-//    id: 0,
-//    email: "Ajay@example.com",
-//    fullname: "Ajay (You)",
-//    password: "password138",
-//    isVerified: true,
-//    badges: [],
-//    currentGoal: nil,
-//    expenses: []
-//)
-
 class UserDataModel {
     private var users: [User] = []
     static let shared = UserDataModel()
     
-    private init() {
-        users.append(firstUser)
-        users.append(secondUser)
-        users.append(thirdUser)
-
-    }
+    private init() {}
+    
+    private let client = SupabaseAPIClient.shared.supabaseClient
     
     func getAllUsers() -> [User] {
         return self.users
     }
     
+    func getAllUsersfromsupabase(completion: @escaping ([User]?, Error?) -> Void) {
+        Task {
+            do {
+                let users: [User] = try await SupabaseAPIClient.shared.supabaseClient
+                    .database
+                    .from("users")
+                    .select()
+                    .execute()
+                    .value // 👈 this gives you the decoded array directly
+
+                completion(users, nil)
+            } catch {
+                completion(nil, error)
+            }
+        }
+    }
+
+    
     func getUser(by id: Int) -> User? {
         return users.first { $0.id == id }
     }
-    
+    func getUser(fromSupabaseBy id: Int) async -> User? {
+        let client = SupabaseAPIClient.shared.supabaseClient
+
+        do {
+            let response: PostgrestResponse<User> = try await client
+                .database
+                .from("users")
+                .select()
+                .eq("id", value: id)
+                .single()
+                .execute()
+
+            let user = response.value
+            print("✅ Fetched user: \(user.fullname)")
+            return user
+
+        } catch {
+            print("❌ Error fetching user from Supabase: \(error)")
+            return nil
+        }
+    }
+
+
+
     
     func assignGoal(to userId: Int, goal: Goal) {
         guard let index = users.firstIndex(where: { $0.id == userId }) else { return }
@@ -170,7 +166,56 @@ class UserDataModel {
 //        users.append(newUser)
 //        return newUser
 //    }
-//    
+//    \
+    func updateUser(userId: Int, name: String, phone: String, completion: @escaping (Result<Void, Error>) -> Void) {
+           let payload: [String: AnyEncodable] = [
+               "fullname": AnyEncodable(name),
+               "phone": AnyEncodable(phone)  // Assuming you have a "phone" field in your Supabase table
+           ]
+           
+           Task {
+               do {
+                   try await client
+                       .from("users")  // Assuming your users table is called "users"
+                       .update(payload)
+                       .eq("id", value: userId)  // Filter by userId
+                       .execute()
+                   
+                   DispatchQueue.main.async {
+                       completion(.success(()))
+                   }
+               } catch {
+                   DispatchQueue.main.async {
+                       completion(.failure(error))
+                   }
+               }
+           }
+       }
+    
+    func updatePassword(userId: Int, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        let payload: [String: AnyEncodable] = [
+            "password": AnyEncodable(newPassword)  // Assuming you have a "password" field in your Supabase table
+        ]
+        
+        Task {
+            do {
+                try await client
+                    .from("users")  // Assuming your users table is called "users"
+                    .update(payload)
+                    .eq("id", value: userId)  // Filter by userId
+                    .execute()
+                
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
     func updateUser(_ user: User) {
         if let index = users.firstIndex(where: { $0.id == user.id }) {
             users[index] = user  

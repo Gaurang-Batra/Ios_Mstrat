@@ -2,31 +2,19 @@ import UIKit
 
 class SignInSecurityViewController: UIViewController {
 
-    // Outlets for password text fields
     @IBOutlet weak var passwordTextField1: UITextField!  // Current password
     @IBOutlet weak var passwordTextField2: UITextField!  // New password
     @IBOutlet weak var passwordTextField3: UITextField!  // Confirm new password
-
-    // Variables to track password visibility
     @IBOutlet weak var eyeButton1: UIButton!
     @IBOutlet weak var eyeButton2: UIButton!
     @IBOutlet weak var eyeButton3: UIButton!
 
-
     var userId: Int?
-
-    // Fetch the stored password (previously set during login)
-    var storedPassword: String {
-        return UserDefaults.standard.string(forKey: "userPassword") ?? ""
-    }
-
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print ("this id ins int he sign in & securty : \(userId)")
-
-        print("User ID in Sign-In & Security: \(userId )")
+        print ("this id is in the sign-in & security : \(userId)")
 
         // Set initial password field properties
         passwordTextField1.isSecureTextEntry = true
@@ -43,7 +31,6 @@ class SignInSecurityViewController: UIViewController {
         passwordTextField3.placeholder = "Re-enter your new password"
     }
 
-    // Toggle password visibility
     func togglePasswordVisibility(for textField: UITextField, button: UIButton) {
         textField.isSecureTextEntry.toggle()
         let imageName = textField.isSecureTextEntry ? "icons8-blind-50" : "icons8-eye-50"
@@ -63,12 +50,12 @@ class SignInSecurityViewController: UIViewController {
     }
 
     @IBAction func saveAndContinueTapped(_ sender: UIButton) {
-        guard let userId = userId,
-              var user = UserDataModel.shared.getUser(by: userId) else {
+        guard let userId = userId else {
             showAlert(title: "Error", message: "User not found.")
             return
         }
-
+        
+        // Validate password fields
         guard let currentPassword = passwordTextField1.text, !currentPassword.isEmpty,
               let newPassword = passwordTextField2.text, !newPassword.isEmpty,
               let confirmPassword = passwordTextField3.text, !confirmPassword.isEmpty else {
@@ -76,24 +63,38 @@ class SignInSecurityViewController: UIViewController {
             return
         }
 
-        // Check if current password is correct
-        if currentPassword != user.password {
-            showAlert(title: "Error", message: "Old password does not match the current password.")
-            return
+        // Fetch user data to compare current password
+        Task {
+            if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                // Check if current password is correct
+                if currentPassword != user.password {
+                    self.showAlert(title: "Error", message: "Old password does not match the current password.")
+                    return
+                }
+
+                // Check if new password and confirmation match
+                if newPassword != confirmPassword {
+                    self.showAlert(title: "Error", message: "New passwords do not match.")
+                    return
+                }
+
+                // Update the password in the database (assuming there's a method to do so)
+                UserDataModel.shared.updatePassword(userId: userId, newPassword: newPassword) { updateResult in
+                    switch updateResult {
+                    case .success:
+                        self.showAlert(title: "Success", message: "Your password has been changed successfully.")
+                    case .failure(let error):
+                        self.showAlert(title: "Error", message: "Failed to update password: \(error.localizedDescription)")
+                    }
+                }
+
+            } else {
+                self.showAlert(title: "Error", message: "User not found.")
+            }
         }
-
-        // Check if new password and confirmation match
-        if newPassword != confirmPassword {
-            showAlert(title: "Error", message: "New passwords do not match.")
-            return
-        }
-
-        // Update the user's password
-        user.password = newPassword
-        UserDataModel.shared.updateUser(user)
-
-        showAlert(title: "Success", message: "Your password has been changed successfully.")
     }
+
+
 
     // Helper function to show alerts
     func showAlert(title: String, message: String) {

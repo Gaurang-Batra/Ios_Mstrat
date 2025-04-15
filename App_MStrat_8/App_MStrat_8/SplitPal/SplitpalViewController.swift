@@ -51,7 +51,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         loadUserGroups()
     }
@@ -96,13 +96,19 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
             return
         }
 
-        let allGroups = GroupDataModel.shared.getAllGroups()
-        filteredGroups = allGroups.filter { $0.members.contains(userId) }
+        // Call the async fetchGroupsForUser method
+        Task {
+            let allGroups = await GroupDataModel.shared.fetchGroupsForUser(userId: userId)
+            
+            // Filter the groups for the current user
+            filteredGroups = allGroups.filter { $0.members.contains(userId) }
 
-        print("Filtered groups for user \(userId): \(filteredGroups.map { $0.groupName })")
-        
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
+            print("Filtered groups for user \(userId): \(filteredGroups.map { $0.group_name })")
+            
+            // Reload the table view on the main thread
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         }
     }
 
@@ -158,7 +164,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
         let cell = tableView.dequeueReusableCell(withIdentifier: "SplitCell", for: indexPath)
         let group = filteredGroups[indexPath.section] // Use section instead of row
         
-        cell.textLabel?.text = group.groupName
+        cell.textLabel?.text = group.group_name
         cell.imageView?.image = group.category
 
         return cell
@@ -168,7 +174,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedGroup = filteredGroups[indexPath.section] 
-        print("Selected group: \(selectedGroup.groupName)")
+        print("Selected group: \(selectedGroup.group_name)")
         performSegue(withIdentifier: "Groupsdetails", sender: self)
     }
 

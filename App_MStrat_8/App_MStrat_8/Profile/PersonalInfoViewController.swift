@@ -80,18 +80,35 @@ class PersonalInfoViewController: UIViewController {
         PhoneTextfield.borderStyle = .roundedRect
         EmailTextfield.textColor = UIColor.gray
     }
-
     func preFillUserData() {
-        guard let userId = userId,
-              let user = UserDataModel.shared.getUser(by: userId) else {
-            print("User not found")
+        guard let userId = userId else {
+            print("User ID not found")
             return
         }
-        
-        Nametextfield.text = user.fullname
-        EmailTextfield.text = user.email  // Email is not editable
-        PhoneTextfield.text = ""  // If you have phone data, set it here
+
+        Task {
+            if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                Nametextfield.text = user.fullname
+                EmailTextfield.text = user.email  // Email is not editable
+                PhoneTextfield.text = "" // Set this if phone data is available
+            } else {
+                print("User not found on Supabase")
+            }
+        }
     }
+
+
+//    func preFillUserData() {
+//        guard let userId = userId,
+//              let user = UserDataModel.shared.getUser(by: userId) else {
+//            print("User not found")
+//            return
+//        }
+//
+//        Nametextfield.text = user.fullname
+//        EmailTextfield.text = user.email  // Email is not editable
+//        PhoneTextfield.text = ""  // If you have phone data, set it here
+//    }
 
     @IBAction func saveAndContinueTapped(_ sender: UIButton) {
         guard let name = Nametextfield.text, !name.isEmpty,
@@ -99,8 +116,21 @@ class PersonalInfoViewController: UIViewController {
             showAlert(title: "Error", message: "Please fill in all fields.")
             return
         }
-
-        showAlert(title: "Changes Saved", message: "Your changes have been saved successfully.")
+        
+        // Now update user data in Supabase
+        guard let userId = userId else {
+            showAlert(title: "Error", message: "User ID not found.")
+            return
+        }
+        
+        UserDataModel.shared.updateUser(userId: userId, name: name, phone: phone) { result in
+            switch result {
+            case .success:
+                self.showAlert(title: "Changes Saved", message: "Your changes have been saved successfully.")
+            case .failure(let error):
+                self.showAlert(title: "Error", message: "Failed to save changes: \(error.localizedDescription)")
+            }
+        }
     }
 
     func showAlert(title: String, message: String) {

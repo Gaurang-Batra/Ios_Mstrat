@@ -67,17 +67,37 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var mytableview: UITableView!
     var groupid : Int?
 
-    private let users = UserDataModel.shared.getAllUsers()
-    
-    
+    var users: [User] = []
+
+
+
+//    
+//    private var users: [User] = []
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
         pricetextfield.delegate = self
+        print ( "this is the group members: \(groupMembers)")
         
 //        groupMembers.insert(0, at: 1)
         
+//        Task {
+//                await loadUsers()
+//            }
         
+        Task {
+              for userId in groupMembers {
+                  if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                      self.users.append(user)
+                  }
+              }
+
+              DispatchQueue.main.async {
+                  self.payerbutton.setTitle("Select Payer", for: .normal)
+                  // Reload table or update UI if needed
+              }
+          }
         
         mytableview.reloadData()
        
@@ -105,6 +125,20 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
 
 
     }
+    
+//    func loadUsers() async {
+//        for userId in groupMembers {
+//            if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+//                users.append(user)
+//            }
+//        }
+//        
+//        // Optionally reload your table view here
+//        DispatchQueue.main.async {
+//            self.mytableview.reloadData()
+//        }
+//    }
+
     @objc func segmentedControlChanged() {
         // Check the selected segment and enable/disable the Splitamount field accordingly
         let isEnabled = segmentedcontroller.selectedSegmentIndex == 1
@@ -238,26 +272,27 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     
     @IBAction func Payerbuttontapped(_ sender: Any) {
-        // Clear the existing `membersdataSource` to avoid duplicate entries
         membersdataSource.removeAll()
-        
-        // Map `groupMembers` IDs to their respective names and append them to `membersdataSource`
-//        membersdataSource.append("Ajay (You)")
-        for memberId in groupMembers {
-            if let user = users.first(where: { $0.id == memberId }) {
-                membersdataSource.append(user.fullname)
+        dataSource.removeAll()
+
+        Task {
+            for memberId in groupMembers {
+                if let user = await UserDataModel.shared.getUser(fromSupabaseBy: memberId) {
+                    membersdataSource.append(user.fullname)
+                    dataSource.append((name: user.fullname, image: UIImage(named: "defaultImage")))
+                } else {
+                    print("⚠️ Could not fetch user with ID \(memberId)")
+                }
             }
+
+            print("✅ Members Data Source: \(membersdataSource)")
+            print("🔢 Group Members: \(groupMembers)")
+
+            selectedbutton = payerbutton
+            addtransparentView(frames: payerbutton.frame)
         }
-        
-        // Debug log to verify the updated `membersdataSource`
-        print("Members Data Source: \(membersdataSource)")
-        print(groupMembers)
-        
-        // Set the `dataSource` for the table view and show the transparent view
-        dataSource = membersdataSource.map { (name: $0, image: UIImage(named: "defaultImage")) }
-        selectedbutton = payerbutton
-        addtransparentView(frames: payerbutton.frame)
     }
+
 
     // Action when category button is clicked
     @IBAction func Categorybutton(_ sender: Any) {
@@ -307,11 +342,19 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         let memberId = groupMembers[indexPath.row]
                
                // Use UserDataModel to find the user by ID
-               if let user = UserDataModel.shared.getUser(by: memberId) {
-                   cell.textLabel?.text = user.fullname // Display user's fullname
-               } else {
-                   cell.textLabel?.text = "Unknown member" // Fallback if user not found
-               }
+               Task {
+                          if let user = await UserDataModel.shared.getUser(fromSupabaseBy: memberId) {
+                              // Update the UI on the main thread after fetching the user
+                              DispatchQueue.main.async {
+                                  cell.textLabel?.text = user.fullname // Display user's fullname
+                              }
+                          } else {
+                              // Fallback if user not found
+                              DispatchQueue.main.async {
+                                  cell.textLabel?.text = "Unknown member"
+                              }
+                          }
+                      }
                return cell
         }
         else {
@@ -367,36 +410,31 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
             return
         }
 
-        // Assuming `paidByName` is the name of the payer, we need to convert this to an ID
+        // Get payer's ID using name
         guard let paidByUser = users.first(where: { $0.fullname == paidByName }) else {
             print("Error: Payer not found in users list")
             return
         }
 
-        let paidById = paidByUser.id  // Get the payer's ID
-        
-        // Determine the payee by excluding the paidBy from groupMembers (groupMembers contains user IDs)
-        let payees = groupMembers.filter { $0 != paidById }  // Exclude selected payer (ID comparison)
+        let paidById = paidByUser.id
 
-        // Split logic based on the selected option
+        // Determine payees by excluding payer
+        let payees = groupMembers.filter { $0 != paidById }
+
+        // Prepare split amounts
         var splitAmounts: [String: Double]? = nil
+
         if segmentedcontroller.selectedSegmentIndex == 0 {  // Equally split
             let splitAmount = price / Double(groupMembers.count)
             splitAmounts = Dictionary(uniqueKeysWithValues: groupMembers.map { memberId in
-                if let member = users.first(where: { $0.id == memberId }) {
-                    return (member.fullname, splitAmount)  // Convert ID to name
-                }
-                return ("Unknown", 0.0)  // Fallback if user not found
+                return ("\(memberId)", splitAmount)  // Use user ID as String to avoid duplicate fullname issue
             })
-        } else if segmentedcontroller.selectedSegmentIndex == 1 {  // Unequally split
-            // Add custom logic to allow users to manually input unequal splits
-            // (You'll need to implement this part, like through a modal or an additional screen)
+        } else if segmentedcontroller.selectedSegmentIndex == 1 {
+            // Implement custom unequal split logic here
         }
 
-        // Get the current date
         let currentDate = Date()
 
-        // Create the new expense split
         let newExpense = ExpenseSplitForm(
             name: title,
             category: categoryString,
@@ -404,26 +442,39 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
             paidBy: paidByName,
             groupId: groupid,
             image: category.associatedImage,
-            splitOption: .equally,  // You can modify this to handle "unequally" case
-            splitAmounts: splitAmounts ?? ["John Doe": 200.0, "Alice Johnson": 300.0],  // Use calculated split amounts
-            payee: payees,  // All group members except the payer
+            splitOption: .equally,
+            splitAmounts: splitAmounts ?? [:],
+            payee: payees,
             date: currentDate,
             ismine: true
         )
-        
-        // Add the new expense to the model
+        SplitExpenseDataModel.shared.uploadExpenseSplitToSupabase(newExpense) { result in
+              switch result {
+              case .success():
+                  print("Expense uploaded successfully")
+                  DispatchQueue.main.async {
+                      self.titletextfield.text = ""
+                      self.pricetextfield.text = ""
+                      self.categorybutton.setTitle("Select Category", for: .normal)
+                      self.payerbutton.setTitle("Select Payer", for: .normal)
+                      self.dismiss(animated: true, completion: nil)
+                  }
+              case .failure(let error):
+                  print("Failed to upload expense: \(error.localizedDescription)")
+                  // Optional: Show alert to user
+              }
+          }
         SplitExpenseDataModel.shared.addExpenseSplit(expense: newExpense)
-        
-        // Optionally, clear the input fields or update the UI
+
         print(newExpense)
         titletextfield.text = ""
         pricetextfield.text = ""
         categorybutton.setTitle("Select Category", for: .normal)
-        payerbutton.setTitle("Select Payer", for: .normal)  // Reset payer button title
+        payerbutton.setTitle("Select Payer", for: .normal)
 
-        // Close the view or update UI as necessary
         self.dismiss(animated: true, completion: nil)
     }
+
 
 
 

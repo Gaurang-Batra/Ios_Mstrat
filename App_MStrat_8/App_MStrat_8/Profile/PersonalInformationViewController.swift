@@ -12,19 +12,21 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
     
     var userId: Int?
 
-    override func viewDidLoad() {
+    override func viewDidLoad()  {
         super.viewDidLoad()
         
         print("This is on the profile page with userId: \(userId ?? -1)")
 
-        // Fetch and display the user's name using UserDataModel
+      
         if let userId = userId {
-            if let user = UserDataModel.shared.getUser(by: userId) {
-                nameLabel.text = user.fullname
-            } else {
-                nameLabel.text = "User Not Found"
+                Task {
+                    if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                        nameLabel.text = user.fullname
+                    } else {
+                        nameLabel.text = "User Not Found"
+                    }
+                }
             }
-        }
         
         configureProfileImage()
         configureSignOutButton()

@@ -16,9 +16,8 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     @IBOutlet weak var ExpenseSegmentedController: UISegmentedControl!
     var expenses: [Expense] = []
-    var groupedExpenses: [[Expense]] = []  // Array to store grouped expenses by date
-    var sectionDates: [String] = []  // Dates for sections
-    
+    var groupedExpenses: [[Expense]] = []  
+    var sectionDates: [String] = []
     var userId : Int?
     var barChartView: BarChartView!
 
@@ -83,138 +82,107 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
 
     private func showBarChartWithExpenseData() {
-        let allExpenses = ExpenseDataModel.shared.getAllExpenses()
-        let calendar = Calendar.current
-        let today = Date()
-        
-        var filteredExpenses: [Expense] = []
-        var labels: [String] = []
-        var values: [Double] = []
+            let allExpenses = self.expenses  // Now this comes from Supabase
 
-        switch ExpenseSegmentedController.selectedSegmentIndex {
-        case 0: // Weekly (by weekday)
-            filteredExpenses = allExpenses.filter {
-                guard let diff = calendar.dateComponents([.day], from: $0.date, to: today).day else { return false }
-                return diff >= 0 && diff < 7
+            let calendar = Calendar.current
+            let today = Date()
+
+            var filteredExpenses: [Expense] = []
+            var labels: [String] = []
+            var values: [Double] = []
+
+            switch ExpenseSegmentedController.selectedSegmentIndex {
+            case 0: // Weekly (by weekday)
+                filteredExpenses = allExpenses.filter {
+                    guard let diff = calendar.dateComponents([.day], from: $0.date, to: today).day else { return false }
+                    return diff >= 0 && diff < 7
+                }
+
+                var weekdayTotals: [Int: Double] = [:]
+                for expense in filteredExpenses {
+                    let weekday = calendar.component(.weekday, from: expense.date)
+                    weekdayTotals[weekday, default: 0] += Double(expense.amount)
+                }
+                let weekdaySymbols = calendar.shortWeekdaySymbols
+                for weekday in 1...7 {
+                    labels.append(weekdaySymbols[weekday - 1])  // Correctly maps 1-7 to index 0-6
+                    values.append(weekdayTotals[weekday] ?? 0)
+                }
+
+            case 1: // Monthly (by month in current year)
+                filteredExpenses = allExpenses.filter {
+                    calendar.isDate($0.date, equalTo: today, toGranularity: .year)
+                }
+
+                var monthTotals: [Int: Double] = [:]
+                for expense in filteredExpenses {
+                    let month = calendar.component(.month, from: expense.date)
+                    monthTotals[month, default: 0] += Double(expense.amount)
+                }
+
+                let monthSymbols = calendar.shortMonthSymbols
+                for month in 1...12 {
+                    labels.append(monthSymbols[month - 1])
+                    values.append(monthTotals[month] ?? 0)
+                }
+
+            case 2: // Yearly (e.g. 2022, 2023, 2024)
+                let uniqueYears = Set(allExpenses.map { calendar.component(.year, from: $0.date) }).sorted()
+                var yearTotals: [Int: Double] = [:]
+                for expense in allExpenses {
+                    let year = calendar.component(.year, from: expense.date)
+                    yearTotals[year, default: 0] += Double(expense.amount)
+                }
+
+                for year in uniqueYears {
+                    labels.append("\(year)")
+                    values.append(yearTotals[year] ?? 0)
+                }
+
+            default:
+                break
             }
 
-            var weekdayTotals: [Int: Double] = [:]
-            for expense in filteredExpenses {
-                let weekday = calendar.component(.weekday, from: expense.date)
-                weekdayTotals[weekday, default: 0] += Double(expense.amount)
-            }
-            let weekdaySymbols = calendar.shortWeekdaySymbols
-            for weekday in 1...7 {
-                labels.append(weekdaySymbols[weekday - 1])  // Correctly maps 1-7 to index 0-6
-                values.append(weekdayTotals[weekday] ?? 0)
+            var entries: [BarChartDataEntry] = []
+            for (index, value) in values.enumerated() {
+                entries.append(BarChartDataEntry(x: Double(index), y: value))
             }
 
+            let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
+            dataSet.colors = ChartColorTemplates.joyful()
+            dataSet.drawValuesEnabled = true
+            dataSet.valueFont = .systemFont(ofSize: 12, weight: .semibold)
+            dataSet.valueTextColor = .black
+            dataSet.highlightEnabled = true
 
-//            let weekdaySymbols = calendar.shortWeekdaySymbols
-//            for weekday in 1...7 {
-//                labels.append(weekdaySymbols[weekday % 7])
-//                values.append(weekdayTotals[weekday] ?? 0)
-//            }
+            let data = BarChartData(dataSet: dataSet)
+            data.barWidth = 0.5
 
-        case 1: // Monthly (by month in current year)
-            filteredExpenses = allExpenses.filter {
-                calendar.isDate($0.date, equalTo: today, toGranularity: .year)
-            }
+            barChartView.data = data
+            barChartView.animate(yAxisDuration: 1.5, easingOption: .easeOutBounce)
 
-            var monthTotals: [Int: Double] = [:]
-            for expense in filteredExpenses {
-                let month = calendar.component(.month, from: expense.date)
-                monthTotals[month, default: 0] += Double(expense.amount)
-            }
+            barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
+            barChartView.xAxis.labelPosition = .bottom
+            barChartView.xAxis.labelFont = .systemFont(ofSize: 12, weight: .medium)
+            barChartView.xAxis.drawGridLinesEnabled = false
+            barChartView.xAxis.granularity = 1
 
-            let monthSymbols = calendar.shortMonthSymbols
-            for month in 1...12 {
-                labels.append(monthSymbols[month - 1])
-                values.append(monthTotals[month] ?? 0)
-            }
+            barChartView.leftAxis.axisMinimum = 0
+            barChartView.leftAxis.drawGridLinesEnabled = true
+            barChartView.rightAxis.enabled = false
 
-        case 2: // Yearly (e.g. 2022, 2023, 2024)
-            let uniqueYears = Set(allExpenses.map { calendar.component(.year, from: $0.date) }).sorted()
-            var yearTotals: [Int: Double] = [:]
-            for expense in allExpenses {
-                let year = calendar.component(.year, from: expense.date)
-                yearTotals[year, default: 0] += Double(expense.amount)
-            }
+            barChartView.doubleTapToZoomEnabled = false
+            barChartView.highlightPerTapEnabled = true
+            barChartView.pinchZoomEnabled = true
+            barChartView.setScaleEnabled(true)
+            barChartView.legend.enabled = true
 
-            for year in uniqueYears {
-                labels.append("\(year)")
-                values.append(yearTotals[year] ?? 0)
-            }
-
-        default:
-            break
+            let marker = BalloonMarker(color: .darkGray, font: .systemFont(ofSize: 12), textColor: .white, insets: UIEdgeInsets(top: 8, left: 8, bottom: 20, right: 8))
+            marker.chartView = barChartView
+            marker.minimumSize = CGSize(width: 75, height: 35)
+            barChartView.marker = marker
         }
 
-//        var entries: [BarChartDataEntry] = []
-//        for (index, value) in values.enumerated() {
-//            entries.append(BarChartDataEntry(x: Double(index), y: value))
-//        }
-//
-//        let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
-//        dataSet.colors = ChartColorTemplates.material()
-//        let data = BarChartData(dataSet: dataSet)
-//
-//        barChartView.data = data
-//        barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
-//        barChartView.xAxis.labelPosition = .bottom
-//        barChartView.xAxis.granularity = 1
-//        barChartView.rightAxis.enabled = false
-//        barChartView.animate(yAxisDuration: 1.4)
-        
-        var entries: [BarChartDataEntry] = []
-           for (index, value) in values.enumerated() {
-               entries.append(BarChartDataEntry(x: Double(index), y: value))
-           }
-
-           let dataSet = BarChartDataSet(entries: entries, label: "Expenses")
-           
-           // 🎨 Stylish Touches
-           dataSet.colors = ChartColorTemplates.joyful() // You can try .pastel(), .colorful(), etc.
-           dataSet.drawValuesEnabled = true // Show values above bars
-           dataSet.valueFont = .systemFont(ofSize: 12, weight: .semibold)
-           dataSet.valueTextColor = .black
-           dataSet.highlightEnabled = true
-
-           // 📊 Chart Data
-           let data = BarChartData(dataSet: dataSet)
-           data.barWidth = 0.5
-
-           // 🧩 Assigning Data
-           barChartView.data = data
-           barChartView.animate(yAxisDuration: 1.5, easingOption: .easeOutBounce)
-
-           // 🧭 Axis Customization
-           barChartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
-           barChartView.xAxis.labelPosition = .bottom
-           barChartView.xAxis.labelFont = .systemFont(ofSize: 12, weight: .medium)
-           barChartView.xAxis.drawGridLinesEnabled = false
-           barChartView.xAxis.granularity = 1
-
-           barChartView.leftAxis.axisMinimum = 0
-           barChartView.leftAxis.drawGridLinesEnabled = true
-           barChartView.rightAxis.enabled = false
-
-           // 🧊 Interactivity
-           barChartView.doubleTapToZoomEnabled = false
-           barChartView.highlightPerTapEnabled = true
-           barChartView.pinchZoomEnabled = true
-           barChartView.setScaleEnabled(true)
-           barChartView.legend.enabled = true
-
-         
-           let marker = BalloonMarker(color: .darkGray, font: .systemFont(ofSize: 12), textColor: .white, insets: UIEdgeInsets(top: 8, left: 8, bottom: 20, right: 8))
-           marker.chartView = barChartView
-           marker.minimumSize = CGSize(width: 75, height: 35)
-           barChartView.marker = marker
-        
-     
-
-    }
 
 
     private func setupTableView() {
@@ -245,10 +213,21 @@ class CensusViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     // MARK: - Load Expenses
     private func loadExpenses() {
-        expenses = ExpenseDataModel.shared.getAllExpenses()
-        groupExpensesByDate()
+        guard let userId = self.userId else {
+            print("User ID not available.")
+            return
+        }
 
+        ExpenseDataModel.shared.fetchExpensesForUser(userId: userId) { fetchedExpenses in
+            DispatchQueue.main.async {
+                self.expenses = fetchedExpenses
+                self.groupExpensesByDate()
+                self.tableView.reloadData()
+                self.showBarChartWithExpenseData()
+            }
+        }
     }
+
 
     // MARK: - Table View Delegate Methods
 

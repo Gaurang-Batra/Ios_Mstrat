@@ -34,6 +34,16 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
 //        
 //        ScrollView.alwaysBounceVertical = true
 //        ScrollView.showsVerticalScrollIndicator = true
+        
+//        UserDataModel.shared.getAllUsersfromsupabase { users, error in
+//               if let error = error {
+//                   print("Error fetching users: \(error.localizedDescription)")
+//               } else if let users = users {
+//                   print("This is all the user data: \(users)")
+//                   // You can also store it if needed:
+//                   // self.users = users
+//               }
+//           }
 
         
         print("this id is on home page \(userId)")

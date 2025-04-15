@@ -23,6 +23,7 @@ class AddmemberCellTableViewCell: UITableViewCell {
             print("No user associated with this cell.")
             return
         }
+        print ( "user with this id is added to the new group : \(user)")
 
         // Toggle the button's state
         isInvited.toggle()

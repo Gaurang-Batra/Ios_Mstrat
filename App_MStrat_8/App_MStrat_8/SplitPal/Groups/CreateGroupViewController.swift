@@ -16,41 +16,56 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     let imageNames = ["icons8-holiday-50", "icons8-bunglaw-50", "icons8-kawaii-pizza-50", "icons8-movie-50", "icons8-gym-50-2", "icons8-more-50-2"]
     var selectedImage: UIImage?
 
-    var users: [User] = []       // To hold all users
-    var searchUsers: [User] = [] // To hold the filtered users
+    var users: [User] = []
+    var searchUsers: [User] = [] 
     var selectedMembers: [Int] = []
     
-    var userId : Int? = 1
+    var userId : Int?
 
     override func viewDidLoad() {
-        super.viewDidLoad()
-        print("id on the split group page : \(userId)")
+           super.viewDidLoad()
+           print("🧑‍💻 Current user ID on the create group page: \(String(describing: userId))")
 
-          for (index, button) in categoryButton.enumerated() {
-            if index < imageNames.count {
-                let image = UIImage(named: imageNames[index])
-                button.setImage(image, for: .normal)
-            }
-        }
+           for (index, button) in categoryButton.enumerated() {
+               if index < imageNames.count {
+                   let image = UIImage(named: imageNames[index])
+                   button.setImage(image, for: .normal)
+               }
+           }
 
-        users = UserDataModel.shared.getAllUsers()
-        
+           
+           UserDataModel.shared.getAllUsersfromsupabase { [weak self] users, error in
+               guard let self = self else { return }
 
-        // Automatically add current user to selected members
-        if let currentUserId = userId {
-            selectedMembers.append(currentUserId)
-            
-            // Filter out the current user from the displayed users
-            users = users.filter { $0.id != currentUserId }
-        }
-        
-        searchUsers = users // Initialize searchUsers with filtered users
+               if let error = error {
+                   print("❌ Error fetching users: \(error.localizedDescription)")
+                   return
+               }
 
-        Mytable.delegate = self
-        Mytable.dataSource = self
-        Mysearchtext.delegate = self
-        addSFSymbolToAddMemberButton()
-    }
+               if let fetchedUsers = users {
+                   print("✅ Fetched users: \(fetchedUsers)")
+
+                   
+                   if let currentUserId = self.userId {
+                       self.selectedMembers.append(currentUserId)
+                       self.users = fetchedUsers.filter { $0.id != currentUserId }
+                   } else {
+                       self.users = fetchedUsers
+                   }
+
+                   self.searchUsers = self.users
+
+                   DispatchQueue.main.async {
+                       self.Mytable.reloadData()
+                   }
+               }
+           }
+
+           Mytable.delegate = self
+           Mytable.dataSource = self
+           Mysearchtext.delegate = self
+           addSFSymbolToAddMemberButton()
+       }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return searchUsers.count
@@ -63,7 +78,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
 
         let user = searchUsers[indexPath.row]
         cell.configure(with: user)
-        cell.delegate = self // Set the delegate to self
+        cell.delegate = self
         return cell
     }
 
@@ -79,7 +94,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            searchUsers = users // users already has current user filtered out
+            searchUsers = users
         } else {
             searchUsers = users.filter { $0.fullname.lowercased().contains(searchText.lowercased()) }
         }
@@ -111,8 +126,9 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
 
         Task {
             do {
+                // Check if group already exists
                 let allGroups = GroupDataModel.shared.getAllGroups()
-                let groupExists = allGroups.contains { $0.groupName.lowercased() == groupName.lowercased() }
+                let groupExists = allGroups.contains { $0.group_name.lowercased() == groupName.lowercased() }
 
                 if groupExists {
                     DispatchQueue.main.async {
@@ -127,23 +143,31 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
                     return
                 }
 
-                // Create group locally
-                GroupDataModel.shared.createGroup(groupName: groupName, category: selectedImage, members: selectedMembers)
-
-                // Save group to Supabase
-                await GroupDataModel.shared.saveGroupToSupabase(userId: userId)
-
-                // Dismiss the view controller
-                DispatchQueue.main.async {
-                    self.dismiss(animated: true, completion: nil)
-                    self.navigationController?.popViewController(animated: true)
+                // Create a new group object without saving it locally
+                if let newGroup = GroupDataModel.shared.createGroup(groupName: groupName, category: selectedImage, members: selectedMembers) {
+                    // Save the group to Supabase and get the generated ID
+                    if let newGroupId = await GroupDataModel.shared.saveGroupToSupabase(group: newGroup, userId: userId ?? 0) {
+                        // Add users to the group in Supabase using the newly created group ID
+                        await GroupDataModel.shared.addUsersToGroupInUserGroupsTable(groupId: newGroupId, userIds: selectedMembers)
+                        
+                        // Step 6: Dismiss the screen
+                        DispatchQueue.main.async {
+                            self.dismiss(animated: true)
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    } else {
+                        print("❌ Failed to save group to Supabase")
+                    }
+                } else {
+                    print("❌ Failed to create group object")
                 }
-
             } catch {
                 print("❌ Error creating group: \(error)")
             }
         }
     }
+
+
 
 
 

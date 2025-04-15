@@ -97,19 +97,35 @@ class MembersListTableViewController: UITableViewController {
 
                // Retrieve the member ID
         let memberId = members[indexPath.row]
-               
-               // Fetch the user's details using the ID
-        if let user = UserDataModel.shared.getUser(by: memberId) {
-            var content = cell.defaultContentConfiguration()
-            content.text = user.fullname
-            content.secondaryText = user.email
-            cell.contentConfiguration = content
-        } else {
-            print("Error: No user found for memberId \(memberId)")
+        
+        Task {
+            if let user = await UserDataModel.shared.getUser(fromSupabaseBy: memberId) {
+                var content = cell.defaultContentConfiguration()
+                content.text = user.fullname
+                content.secondaryText = user.email
+
+                // You need to access UI on main thread
+                await MainActor.run {
+                    cell.contentConfiguration = content
+                }
+            } else {
+                print("Error: No user found for memberId \(memberId)")
+            }
         }
 
+               
+               // Fetch the user's details using the ID
+//        if let user = UserDataModel.shared.getUser(by: memberId) {
+//            var content = cell.defaultContentConfiguration()
+//            content.text = user.fullname
+//            content.secondaryText = user.email
+//            cell.contentConfiguration = content
+//        } else {
+//            print("Error: No user found for memberId \(memberId)")
+//        }
 
-               // Add a cross button (remove) on the right side of the cell
+
+             
                let removeButton = UIButton(type: .custom)
                removeButton.setTitle("x", for: .normal)
                removeButton.setTitleColor(.red, for: .normal)
