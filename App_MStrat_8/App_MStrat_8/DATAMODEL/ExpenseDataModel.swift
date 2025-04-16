@@ -136,6 +136,24 @@ class ExpenseDataModel {
         return expenses
     }
     
+    func fetchExpensesForUser(userId: Int) async -> [Expense] {
+            let client = SupabaseAPIClient.shared.supabaseClient
+        
+            do {
+                let response: PostgrestResponse<[Expense]> = try await client
+                    .database
+                    .from("expenses")
+                    .select()
+                    .eq("user_id", value: userId)
+                    .execute()
+                
+                return response.value ?? []
+            } catch {
+                print("❌ Error fetching expenses from Supabase: \(error)")
+                return []
+            }
+        }
+    
     func fetchExpensesFromSupabase(for userId: Int) async {
             let client = SupabaseAPIClient.shared.supabaseClient
 

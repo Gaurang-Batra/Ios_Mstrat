@@ -42,6 +42,26 @@ class AllowanceDataModel {
         allowances.append(firstAllowance)
     }
     
+    
+    func getAllowances(forUserId userId: Int) async -> [Allowance] {
+               let client = SupabaseAPIClient.shared.supabaseClient
+               
+               do {
+                   let allowances: [Allowance] = try await client
+                       .database
+                       .from("allowances")
+                       .select()
+                       .eq("user_id", value: userId)
+                       .execute()
+                       .value
+                   self.allowances = allowances // Store if needed
+                   return allowances
+               } catch {
+                   print("❌ Error fetching allowances for user \(userId): \(error)")
+                   return []
+               }
+           }
+    
     func getAllAllowances() -> [Allowance] {
         return self.allowances
     }

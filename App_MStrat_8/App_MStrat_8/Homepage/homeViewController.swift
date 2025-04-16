@@ -182,22 +182,41 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
 
 
     @objc private func updateTotalExpense() {
-        let totalAllowance = AllowanceDataModel.shared.getAllAllowances().reduce(0.0) { $0 + $1.amount }
-        let totalExpense = ExpenseDataModel.shared.getAllExpenses().reduce(0.0) { $0 + Double($1.amount) }
-
-        let remaining = totalAllowance - totalExpense
-
-        // Show both total expense and remaining (can be negative now)
-        totalexpenselabel.text = String(format: "Rs. %.0f", totalExpense)
-        remaininfAllowancelabel.text = String(format: "Rs. %.0f", remaining)
+            guard let userId = self.userId else { return }
         
-        if remaining < 0 {
-            remaininfAllowancelabel.textColor = .red
-        } else {
-            remaininfAllowancelabel.textColor = .systemGreen // or your default color
+            Task {
+                async let allowances = AllowanceDataModel.shared.getAllowances(forUserId: userId)
+                async let expenses = ExpenseDataModel.shared.fetchExpensesForUser(userId: userId)
+                
+                let fetchedAllowances: [Allowance] = await allowances
+                let fetchedExpenses: [Expense] = await expenses
+                
+                let totalAllowance = fetchedAllowances.reduce(0.0) { $0 + $1.amount }
+                let totalExpense = fetchedExpenses.reduce(0.0) { $0 + Double($1.amount) }
+                let remaining = totalAllowance - totalExpense
+                
+                DispatchQueue.main.async {
+                    self.totalexpenselabel.text = String(format: "Rs. %.0f", totalExpense)
+                    self.remaininfAllowancelabel.text = String(format: "Rs. %.0f", remaining)
+                    
+                    if remaining < 0 {
+                        self.remaininfAllowancelabel.textColor = .red
+                    } else {
+                        self.remaininfAllowancelabel.textColor = .systemGreen
+                    }
+                    
+                    if remaining <= 0 {
+                        let alert = UIAlertController(
+                            title: "Allowance Limit Reached",
+                            message: "You have exceeded your total allowance!",
+                            preferredStyle: .alert
+                        )
+                        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                }
+            }
         }
-
-    }
 
     @objc private func refreshExpenses() {
         expenses = ExpenseDataModel.shared.getAllExpenses()
