@@ -206,6 +206,20 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         // Add functionality to update total expense label when new expense is appended
         updateTotalExpense()
 //        updateTotalExpenseLabelWithAppendedExpense()
+        
+        guard let userId = userId else {
+            print ("user not set")
+            return
+        }
+        
+        Task{
+            await ExpenseDataModel.shared.fetchExpensesFromSupabase(for: userId)
+            self.expenses = ExpenseDataModel.shared.getAllExpenses()
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+            }
+            
+        }
     }
 
     private func updateTotalExpenseLabelWithAppendedExpense() {
