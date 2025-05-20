@@ -33,9 +33,6 @@ class SignUpViewController: UIViewController {
             
             // Set background color to light gray with 0.95 opacity
             view.backgroundColor = UIColor(red: 0.85, green: 0.85, blue: 0.85, alpha: 1)
-            
-            // Add bounce animation with a slight delay
-//            addBounceAnimation(to: view, delay: Double(index) * 0.3)
         }
     }
     
@@ -63,27 +60,60 @@ class SignUpViewController: UIViewController {
             return
         }
 
-        // Create a new user using UserDataModel
-        let newUser = UserDataModel.shared.createUser(email: email, fullname: name, password: password)
-        print("New user created: \(newUser)")
+        // Check if user with this email or username already exists
+        Task {
+            let (emailExists, fullnameExists) = await UserDataModel.shared.checkUserExists(email: email, fullname: name)
+            if emailExists || fullnameExists {
+                var alertMessage = "User with this "
+                if emailExists && fullnameExists {
+                    alertMessage += "email and username already exists."
+                } else if emailExists {
+                    alertMessage += "email already exists."
+                } else {
+                    alertMessage += "username already exists."
+                }
+                DispatchQueue.main.async {
+                    self.showAlert(message: alertMessage)
+                }
+                return
+            }
 
-        // Navigate to the verification screen **before** going to the Tab Bar Controller
-        guard let storyboard = storyboard else { return }
-        if let verifyVC = storyboard.instantiateViewController(withIdentifier: "verifycode") as? VerifyotpViewController {
-            verifyVC.userId = newUser.id  // Pass user ID to verification screen
-            
-            // Push to verification screen
-            navigationController?.pushViewController(verifyVC, animated: true)
+            // Proceed with user creation
+            UserDataModel.shared.createUser(email: email, fullname: name, password: password) { result in
+                switch result {
+                case .success(let newUser):
+                    print("Verification email sent for user: \(newUser.email)")
+                    
+                    // Navigate to the verification screen
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, let storyboard = self.storyboard else { return }
+                        if let verifyVC = storyboard.instantiateViewController(withIdentifier: "verifycode") as? VerifyotpViewController {
+                            // Pass user data to verification screen
+                            verifyVC.email = newUser.email
+                            verifyVC.fullname = newUser.fullname
+                            verifyVC.password = newUser.password
+                            // Push to verification screen
+                            self.navigationController?.pushViewController(verifyVC, animated: true)
+                        }
+                    }
+                    
+                case .failure(let error):
+                    print("Error sending verification email: \(error.localizedDescription)")
+                    DispatchQueue.main.async { [weak self] in
+                        self?.showAlert(message: "Failed to send verification email: \(error.localizedDescription)")
+                    }
+                }
+            }
         }
     }
-
-
-
     
+    // Helper function to validate email
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        return emailPred.evaluate(with: email)
+    }
     
-
-
-
     // Helper function to show alerts
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "Input Required", message: message, preferredStyle: .alert)
@@ -99,12 +129,6 @@ class SignUpViewController: UIViewController {
         underline.backgroundColor = UIColor.black.cgColor
         textField.borderStyle = .none
         textField.layer.addSublayer(underline)
-    }
-    
-    // Helper function to validate email format
-    private func isValidEmail(_ email: String) -> Bool {
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
-        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
     }
     
     // Enable the sign-up button only when all fields are filled
@@ -131,19 +155,4 @@ class SignUpViewController: UIViewController {
             button.setImage(UIImage(named: "icons8-blind-50"), for: .normal)
         }
     }
-
-    // Add animation to each circle (bounce effect)
-//    private func addBounceAnimation(to view: UIView, delay: TimeInterval) {
-//        // Create the bounce animation
-//        let animation = CABasicAnimation(keyPath: "transform.scale")
-//        animation.fromValue = 1.0
-//        animation.toValue = 1.1
-//        animation.duration = 0.8
-//        animation.autoreverses = true
-//        animation.repeatCount = .infinity
-//        animation.beginTime = CACurrentMediaTime() + delay
-//
-//        // Add animation to the layer
-//        view.layer.add(animation, forKey: "bounce")
-//    }
 }

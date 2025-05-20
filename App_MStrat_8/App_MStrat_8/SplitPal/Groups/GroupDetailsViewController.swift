@@ -1,12 +1,4 @@
-//
-//  GroupDetailViewController.swift
-//  App_MStrat_8
-//
-//  Created by student-2 on 23/12/24.
-//
-
 import UIKit
-
 
 class GroupDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -20,69 +12,37 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     @IBOutlet weak var amountlabel: UILabel!
     @IBOutlet weak var GroupInfoView: UIView!
     @IBOutlet weak var SegmentedControllerforgroup: UISegmentedControl!
-    
     @IBOutlet weak var membersbutton: UIButton!
     
-    
     var groupItem: Group?
-    var members : String = ""
-    var userId : Int?
+    var userId: Int?
     
     @IBAction func addedmemberbuttontapped(_ sender: UIButton) {
-        print(groupItem?.group_name)
-        print(groupItem?.id)
+        print(groupItem?.group_name ?? "No group name")
+        print(groupItem?.id ?? "No group ID")
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
-           filterBalances()
-           tableView.reloadData()
+        filterBalances()
+        tableView.reloadData()
+        updateMembersButton() // Refresh member names
     }
+    
     private var expenses: [ExpenseSplitForm] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print ("this id is present in the balance page : \(userId) ")
+        print("this id is present in the balance page: \(userId ?? 0)")
         
         guard let group = groupItem else {
             print("groupItem is nil")
             return
         }
-
-        var memberNames: [String] = []
         
-        Task {
-               var memberNames: [String] = []
-
-               for userId in group.members {
-                   if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
-                       memberNames.append(user.fullname)
-                   }
-               }
-
-               let limitedNames = memberNames.prefix(1).joined(separator: ", ")
-               let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
-
-               await MainActor.run {
-                   self.membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
-               }
-           }
+        // Fetch and display member names
+        updateMembersButton()
         
-
-//        for userId in group.members {
-//            if let user = UserDataModel.shared.getUser(by: userId) {
-//                memberNames.append(user.fullname)
-//            }
-//        }
-//
-//        let limitedNames = memberNames.prefix(1).joined(separator: ", ")
-//        let displayText = memberNames.count > 1 ? limitedNames + "..." : limitedNames
-//
-//        membersbutton.setTitle(displayText.isEmpty ? "No Members" : displayText, for: .normal)
-
-
-
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id ?? 0)
-        
-       filterBalances()
+        filterBalances()
         
         groupnamelabel.text = group.group_name
         groupimageoutlet.image = group.category
@@ -90,35 +50,49 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         GroupInfoView.layer.cornerRadius = 20
         GroupInfoView.layer.masksToBounds = true
         
-        // Initially set the separator style based on the selected segment
+        // Initially set the separator style based the selected segment
         updateSeparatorStyle()
         
         // Set up the segment control action
         SegmentedControllerforgroup.addTarget(self, action: #selector(segmentControlChanged), for: .valueChanged)
         
-        
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newExpenseAddedInGroup, object: nil)
-
-
         
         updateExpenseSum()
-
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
         filterBalances()
-   
         tableView.reloadData()
-
         updateExpenseSum()
-
         updateSeparatorStyle()
     }
-
-
+    
+    // MARK: - Helper Functions
+    
+    private func updateMembersButton() {
+        guard let group = groupItem, let groupId = group.id else {
+            membersbutton.setTitle("No Members", for: .normal)
+            return
+        }
+        
+        GroupDataModel.shared.fetchGroupMembers(groupId: groupId, includeUserDetails: true) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let users):
+                    let memberNames = (users as? [User])?.map { $0.fullname } ?? []
+                    let displayText = memberNames.isEmpty ? "No Members" : memberNames.joined(separator: ", ")
+                    self.membersbutton.setTitle(displayText, for: .normal)
+                case .failure(let error):
+                    print("❌ Error fetching group members: \(error)")
+                    self.membersbutton.setTitle("No Members", for: .normal)
+                }
+            }
+        }
+    }
+    
     @objc func reloadTableView() {
         print("Reloading table view...")
         balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
@@ -126,7 +100,7 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         tableView.reloadData()
         updateExpenseSum()
     }
-
+    
     @objc func segmentControlChanged() {
         filterBalances()
         updateSeparatorStyle()
@@ -134,9 +108,9 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     func updateExpenseSum() {
-            let totalAmount = balances.reduce(0) { $0 + $1.totalAmount }
-            amountlabel.text = "Rs.\(Int(totalAmount))"
-        }
+        let totalAmount = balances.reduce(0) { $0 + $1.totalAmount }
+        amountlabel.text = "Rs.\(Int(totalAmount))"
+    }
     
     func filterBalances() {
         var tempBalances: [ExpenseSplitForm] = []
@@ -144,8 +118,8 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         for expense in balances {
             for payeeId in expense.payee {
                 var payeeExpense = expense
-                payeeExpense.paidBy = expense.paidBy  // Keep the same payer
-                payeeExpense.payee = [payeeId]  // Set the payee to the current payee only
+                payeeExpense.paidBy = expense.paidBy
+                payeeExpense.payee = [payeeId]
                 
                 if let existingExpenseIndex = tempBalances.firstIndex(where: { $0.paidBy == payeeExpense.paidBy && $0.payee == payeeExpense.payee }) {
                     tempBalances[existingExpenseIndex].totalAmount += payeeExpense.totalAmount
@@ -154,11 +128,10 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
                 }
             }
         }
-  
+        
         let currentUserName = userId != nil ? UserDataModel.shared.getUser(by: userId!)?.fullname : nil
         let currentUserDisplayName = currentUserName != nil ? "\(currentUserName!) (You)" : nil
         
-    
         myBalances = tempBalances.filter {
             (currentUserDisplayName != nil && $0.paidBy.contains(currentUserDisplayName!)) ||
             (userId != nil && $0.payee.contains(userId!))
@@ -169,9 +142,7 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             (userId == nil || !$0.payee.contains(userId!))
         }
     }
-
-
-
+    
     func updateSeparatorStyle() {
         if SegmentedControllerforgroup.selectedSegmentIndex == 0 {
             tableView.separatorStyle = .singleLine
@@ -179,6 +150,8 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             tableView.separatorStyle = .none
         }
     }
+    
+    // MARK: - Table View Data Source
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return SegmentedControllerforgroup.selectedSegmentIndex == 0 ? 1 : 2
@@ -199,14 +172,12 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             return section == 0 ? myBalances.count : othersBalances.count
         }
     }
-
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if SegmentedControllerforgroup.selectedSegmentIndex == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "ExpenseCell", for: indexPath) as! ExpenseAddedTableViewCell
             
             let expense = balances[indexPath.row]
-     
             cell.ExpenseAddedlabel.text = expense.name
             cell.Paidbylabel.text = expense.paidBy
             cell.ExoenseAmountlabel.text = "Rs.\(Int(expense.totalAmount))"
@@ -231,7 +202,6 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             return cell
         }
     }
-
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if SegmentedControllerforgroup.selectedSegmentIndex == 0 {
@@ -296,8 +266,10 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         return 50
     }
     
+    // MARK: - Navigation
+    
     func navigateToSettlement(with amount: Double, expense: ExpenseSplitForm?) {
-        performSegue(withIdentifier: "Settlement", sender: amount)
+        performSegue(withIdentifier: "Settlement", sender: expense)
     }
     
     @IBAction func ExpenseSplitbuttontapped(_ sender: Any) {
@@ -306,31 +278,29 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Settlement" {
-                    if let destinationVC = segue.destination as? SettlementViewController,
-                       let selectedExpense = sender as? ExpenseSplitForm {
-                        destinationVC.labelText = selectedExpense.totalAmount
-                        destinationVC.selectedExpense = selectedExpense
-                        destinationVC.delegate = self  // Set the delegate to self
-                    }
+            if let destinationVC = segue.destination as? SettlementViewController,
+               let selectedExpense = sender as? ExpenseSplitForm {
+                destinationVC.labelText = selectedExpense.totalAmount
+                destinationVC.selectedExpense = selectedExpense
+                destinationVC.delegate = self
             }
-        else if segue.identifier == "ExpenseSplit" {
+        } else if segue.identifier == "ExpenseSplit" {
             if let navigationController = segue.destination as? UINavigationController,
                let destinationVC = navigationController.topViewController as? BillViewController {
-                if let member = groupItem?.members {
-                    destinationVC.groupMembers = member
-                    print("Sending groupItem IDs: \(member)")
+                if let members = groupItem?.members {
+                    destinationVC.groupMembers = members
+                    print("Sending groupItem IDs: \(members)")
                 }
                 if let id = groupItem?.id {
                     destinationVC.groupid = id
                     print("Sending groupItem IDs: \(id)")
                 }
             }
-        }
-        else if segue.identifier == "invitedmemberlist" {
+        } else if segue.identifier == "invitedmemberlist" {
             if let destinationVC = segue.destination as? MembersListTableViewController {
-                if let member = groupItem?.members {
-                    destinationVC.members = member
-                    print("Sending groupItem IDs: \(member)")
+                if let groupId = groupItem?.id {
+                    destinationVC.groupId = groupId
+                    print("Sending groupId: \(groupId)")
                 }
             }
         }

@@ -14,6 +14,7 @@
 		DB612AAD2D92624200F45EF8 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = DB612AAC2D92624200F45EF8 /* Realtime */; };
 		DB612AAF2D92624200F45EF8 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = DB612AAE2D92624200F45EF8 /* Storage */; };
 		DB612AB12D92624200F45EF8 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB612AB02D92624200F45EF8 /* Supabase */; };
+		DBE885972DC9CEAC00413149 /* SwiftSMTP in Frameworks */ = {isa = PBXBuildFile; productRef = DBE885962DC9CEAC00413149 /* SwiftSMTP */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 			files = (
 				DB612AAB2D92624200F45EF8 /* PostgREST in Frameworks */,
 				DB612AA92D92624200F45EF8 /* Functions in Frameworks */,
+				DBE885972DC9CEAC00413149 /* SwiftSMTP in Frameworks */,
 				DB612AB12D92624200F45EF8 /* Supabase in Frameworks */,
 				DB612AA72D92624200F45EF8 /* Auth in Frameworks */,
 				DB612AAF2D92624200F45EF8 /* Storage in Frameworks */,
@@ -157,6 +159,7 @@
 				DB612AAE2D92624200F45EF8 /* Storage */,
 				DB612AB02D92624200F45EF8 /* Supabase */,
 				DB4541D72D9FEA5800EAAB63 /* DGCharts */,
+				DBE885962DC9CEAC00413149 /* SwiftSMTP */,
 			);
 			productName = App_MStrat_8;
 			productReference = 6B098BD72D002DD4006D4C4D /* App_MStrat_8.app */;
@@ -243,6 +246,7 @@
 			packageReferences = (
 				DB612AA52D92624200F45EF8 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				DB4541D62D9FEA5800EAAB63 /* XCRemoteSwiftPackageReference "Charts" */,
+				DBE885952DC9CEAC00413149 /* XCRemoteSwiftPackageReference "swift-smtp" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6B098BD82D002DD4006D4C4D /* Products */;
@@ -619,6 +623,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		DBE885952DC9CEAC00413149 /* XCRemoteSwiftPackageReference "swift-smtp" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LocaleHubOSS/swift-smtp.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -656,6 +668,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB612AA52D92624200F45EF8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		DBE885962DC9CEAC00413149 /* SwiftSMTP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBE885952DC9CEAC00413149 /* XCRemoteSwiftPackageReference "swift-smtp" */;
+			productName = SwiftSMTP;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

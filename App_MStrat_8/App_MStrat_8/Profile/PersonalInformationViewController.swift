@@ -120,13 +120,30 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
     }
 
     @IBAction func goToLoginScreenButtonTapped(_ sender: UIButton) {
-        if let loginVC = storyboard?.instantiateViewController(withIdentifier: "Openpage") as? SplashViewController
-        {
-            let navigationController = UINavigationController(rootViewController: loginVC)
-            navigationController.setNavigationBarHidden(true, animated: false)
-            (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.window?.rootViewController = navigationController
+        Task {
+            if let userId = userId,
+               let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId),
+               user.is_guest == true {
+                do {
+                    try await SupabaseAPIClient.shared.supabaseClient
+                        .from("users")
+                        .delete()
+                        .eq("id", value: userId)
+                        .execute()
+                    print("🗑️ Guest user deleted from Supabase")
+                } catch {
+                    print("❌ Failed to delete guest user: \(error)")
+                }
+            }
+
+            if let loginVC = storyboard?.instantiateViewController(withIdentifier: "Openpage") as? SplashViewController {
+                let navigationController = UINavigationController(rootViewController: loginVC)
+                navigationController.setNavigationBarHidden(true, animated: false)
+                (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.window?.rootViewController = navigationController
+            }
         }
     }
+
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

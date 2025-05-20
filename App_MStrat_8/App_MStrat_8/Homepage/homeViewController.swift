@@ -296,8 +296,7 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
     let badgeThresholds = [100, 500, 1000, 2000]
    
 
-    var unlockedBadgeCount = 0 // Keeps track of how many badges are unlocked
-
+    var unlockedBadgeCount = 0
     
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

@@ -236,7 +236,14 @@ Try it!</string>
                             <constraint firstItem="If3-2M-3CG" firstAttribute="top" secondItem="vK9-xO-FTG" secondAttribute="bottom" constant="20" id="zob-S1-DRM"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="SplitPal" id="Qmo-L1-Hdt"/>
+                    <navigationItem key="navigationItem" title="SplitPal" id="Qmo-L1-Hdt">
+                        <barButtonItem key="rightBarButtonItem" title="notification" id="Sve-JW-E8s">
+                            <connections>
+                                <action selector="notificationButtonTapped:" destination="BYZ-38-t0r" id="mf6-M1-OZU"/>
+                                <segue destination="eXc-6d-rzI" kind="show" identifier="notifications" destinationCreationSelector="notifications" id="AHb-Ew-EBl"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="Balanceviewcontainer" destination="vK9-xO-FTG" id="HIx-T4-IAr"/>
                         <outlet property="Groupsviewcontainer" destination="If3-2M-3CG" id="mqj-KN-3B7"/>
@@ -261,7 +268,59 @@ Try it!</string>
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dfl-ET-v79" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2073" y="26"/>
+            <point key="canvasLocation" x="2381" y="323"/>
+        </scene>
+        <!--notifications-->
+        <scene sceneID="8sr-iy-59O">
+            <objects>
+                <viewController storyboardIdentifier="notifications" title="notifications" id="eXc-6d-rzI" customClass="NotificationViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="ZQU-Um-0BR">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="uiH-LZ-nMp">
+                                <rect key="frame" x="16" y="153" width="361" height="623"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="nofication" id="Cjb-LP-mvQ" customClass="notificationTableViewCell" customModule="App_MStrat_8" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="50" width="361" height="43.666667938232422"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Cjb-LP-mvQ" id="yD7-7O-5be">
+                                            <rect key="frame" x="0.0" y="0.0" width="361" height="43.666667938232422"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4wh-CJ-m1o">
+                                                    <rect key="frame" x="265" y="4" width="78" height="35"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <state key="normal" title="Button"/>
+                                                    <buttonConfiguration key="configuration" style="plain" title="Accept"/>
+                                                </button>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gqa-pI-KIY">
+                                                    <rect key="frame" x="32" y="11" width="43" height="21"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="acceptbutton" destination="4wh-CJ-m1o" id="cIC-TL-qVm"/>
+                                            <outlet property="username" destination="Gqa-pI-KIY" id="DOa-Mg-PqT"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="zvM-SA-7nW"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="5Ab-b8-8Xk"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8vn-Rv-f5x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2380.9160305343512" y="-81.690140845070431"/>
         </scene>
         <!--Group Detail View Controller-->
         <scene sceneID="iuy-9E-oaC">
@@ -495,7 +554,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Tp0-tN-bn4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2574.8091603053435" y="334.50704225352115"/>
+            <point key="canvasLocation" x="3259" y="418"/>
         </scene>
         <!--SplitPal-->
         <scene sceneID="em5-IT-PDh">
@@ -1458,7 +1517,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9a8-FY-kkl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4144.2748091603053" y="1055.6338028169014"/>
+            <point key="canvasLocation" x="4132" y="1292"/>
         </scene>
         <!--Members List Table View Controller-->
         <scene sceneID="gC0-2N-1mv">
@@ -1486,13 +1545,10 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                     <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="FQS-hS-IyO">
                         <barButtonItem key="backBarButtonItem" title="Bank" id="N0a-fh-THZ"/>
                     </navigationItem>
-                    <connections>
-                        <outlet property="tableview" destination="zna-sK-wcw" id="qjn-J7-CY8"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="AxI-ZA-h7B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3360" y="-113"/>
+            <point key="canvasLocation" x="4332" y="-113"/>
         </scene>
         <!--Bill-->
         <scene sceneID="fWf-J9-Whj">
@@ -1652,7 +1708,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RHq-u3-xoG" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5827" y="332"/>
+            <point key="canvasLocation" x="5873" y="518"/>
         </scene>
         <!--Add Allowance-->
         <scene sceneID="u7z-Ut-dqt">
@@ -2328,7 +2384,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController id="Sgv-CM-Ofn" customClass="ForgotPasswordViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BV8-gR-hpM">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Your Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="KLi-R9-rcc">
@@ -2346,7 +2402,8 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                                     <color key="baseBackgroundColor" red="0.83137255909999996" green="0.83137255909999996" blue="0.83137255909999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <segue destination="RMq-VS-R4f" kind="show" id="aJJ-t9-Xee"/>
+                                    <action selector="sendEmailButtonTapped:" destination="Sgv-CM-Ofn" eventType="touchUpInside" id="big-aD-nBn"/>
+                                    <segue destination="RMq-VS-R4f" kind="show" identifier="goToRecoveryPassword" id="aJJ-t9-Xee"/>
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="C5n-KS-ypo">
@@ -2458,6 +2515,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                     <navigationItem key="navigationItem" id="gAV-Dm-LAc"/>
                     <connections>
                         <outlet property="emailTextField" destination="KLi-R9-rcc" id="P4m-tp-xQq"/>
+                        <outlet property="sendButton" destination="LZm-kz-8rP" id="KaS-rI-KvG"/>
                         <outletCollection property="circleview" destination="C5n-KS-ypo" collectionClass="NSMutableArray" id="m2V-QL-IQq"/>
                         <outletCollection property="circleview" destination="0nc-n4-Ti1" collectionClass="NSMutableArray" id="EZb-ec-e63"/>
                         <outletCollection property="circleview" destination="3zx-tX-69i" collectionClass="NSMutableArray" id="xD3-NZ-sar"/>
@@ -2477,14 +2535,14 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Zs1-ge-DKf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-4408.3969465648852" y="1864.7887323943662"/>
+            <point key="canvasLocation" x="-4897" y="1865"/>
         </scene>
         <!--Recovery Password View Controller-->
         <scene sceneID="xq9-Mu-Z88">
             <objects>
-                <viewController id="RMq-VS-R4f" customClass="RecoveryPasswordViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="RecoveryPasswordViewController" id="RMq-VS-R4f" customClass="RecoveryPasswordViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="KyW-gz-Ks8">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="st6-Yi-BWX">
@@ -2604,6 +2662,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                                     <color key="baseBackgroundColor" red="0.83137255909999996" green="0.83137255909999996" blue="0.83137255909999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
+                                    <action selector="sendEmailButtonTapped:" destination="RMq-VS-R4f" eventType="touchUpInside" id="yCN-IS-d8g"/>
                                     <segue destination="olV-qE-FMW" kind="show" id="Klm-aH-o7Q"/>
                                 </connections>
                             </button>
@@ -2654,14 +2713,14 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xj1-oc-ffE" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-3695.419847328244" y="1864.7887323943662"/>
+            <point key="canvasLocation" x="-3866" y="1865"/>
         </scene>
         <!--Login View Controller-->
         <scene sceneID="jkl-p2-hkS">
             <objects>
                 <viewController id="olV-qE-FMW" customClass="LoginViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="M3Q-SX-6fN">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="7dn-l5-MDt">
@@ -2834,6 +2893,15 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sTg-2J-ymH">
+                                <rect key="frame" x="8" y="514" width="168" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="login as guest user"/>
+                                <connections>
+                                    <action selector="loginAsGuestTapped:" destination="olV-qE-FMW" eventType="touchUpInside" id="W51-Zy-8VV"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="pqm-Cw-ezG"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -2871,7 +2939,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController id="uup-HX-cZq" customClass="SignUpViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="g5C-Jh-WPX">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tze-9L-UkC">
@@ -3349,7 +3417,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EEW-yL-wCT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4900" y="332"/>
+            <point key="canvasLocation" x="4958" y="518"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="dFW-5U-11m">
@@ -3367,14 +3435,14 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="M6f-Ze-Qce" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3217.5572519083967" y="1055.6338028169014"/>
+            <point key="canvasLocation" x="3259" y="1292"/>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="slq-dV-Nfy"/>
-        <segue reference="axb-SC-zZr"/>
-        <segue reference="HMP-H4-Ezh"/>
-        <segue reference="o86-rk-2IY"/>
+        <segue reference="T0n-pq-x5b"/>
+        <segue reference="mFT-xW-tw8"/>
+        <segue reference="WJu-5e-rgA"/>
+        <segue reference="5Pz-bk-SPw"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="Group" width="766.80194091796875" height="500.94793701171875"/>

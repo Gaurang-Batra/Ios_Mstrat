@@ -22,61 +22,74 @@ struct Group: Codable {
     var category: UIImage?
     var members: [Int]
     var expenses: [ExpenseSplitForm]?
-    var user_id : Int?
+    var user_id: Int?
 
     enum CodingKeys: String, CodingKey {
-          case id, group_name, category, members, expenses, user_id
-      }
+        case id, group_name, category, members, expenses, user_id
+    }
 
-      func encode(to encoder: Encoder) throws {
-          var container = encoder.container(keyedBy: CodingKeys.self)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encode(group_name, forKey: .group_name)
+        try container.encode(members, forKey: .members)
+        try container.encodeIfPresent(expenses, forKey: .expenses)
+        try container.encodeIfPresent(user_id, forKey: .user_id)
+        if let imageData = category?.jpegData(compressionQuality: 0.8) {
+            let base64String = imageData.base64EncodedString()
+            try container.encode(base64String, forKey: .category)
+        } else {
+            try container.encodeNil(forKey: .category)
+        }
+    }
 
-          try container.encodeIfPresent(id, forKey: .id)
-          try container.encode(group_name, forKey: .group_name)
-          try container.encode(members, forKey: .members)
-          try container.encodeIfPresent(expenses, forKey: .expenses)
-          try container.encodeIfPresent(user_id, forKey: .user_id)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(Int.self, forKey: .id)
+        group_name = try container.decode(String.self, forKey: .group_name)
+        members = try container.decode([Int].self, forKey: .members)
+        expenses = try container.decodeIfPresent([ExpenseSplitForm].self, forKey: .expenses)
+        user_id = try container.decodeIfPresent(Int.self, forKey: .user_id)
+        if let base64String = try? container.decode(String.self, forKey: .category),
+           let imageData = Data(base64Encoded: base64String),
+           let image = UIImage(data: imageData) {
+            category = image
+        } else {
+            category = nil
+        }
+    }
 
-          if let imageData = category?.jpegData(compressionQuality: 0.8) {
-              let base64String = imageData.base64EncodedString()
-              try container.encode(base64String, forKey: .category)
-          } else {
-              try container.encodeNil(forKey: .category)
-          }
-      }
-
-      init(from decoder: Decoder) throws {
-          let container = try decoder.container(keyedBy: CodingKeys.self)
-
-          id = try container.decodeIfPresent(Int.self, forKey: .id)
-          group_name = try container.decode(String.self, forKey: .group_name)
-          members = try container.decode([Int].self, forKey: .members)
-          expenses = try container.decodeIfPresent([ExpenseSplitForm].self, forKey: .expenses)
-          user_id = try container.decodeIfPresent(Int.self, forKey: .user_id)
-
-          if let base64String = try? container.decode(String.self, forKey: .category),
-             let imageData = Data(base64Encoded: base64String),
-             let image = UIImage(data: imageData) {
-              category = image
-          } else {
-              category = nil
-          }
-      }
-
-      init(id: Int? = nil, group_name: String, category: UIImage?, members: [Int], expenses: [ExpenseSplitForm]? = nil, user_id: Int? = nil) {
-          self.id = id
-          self.group_name = group_name
-          self.category = category
-          self.members = members
-          self.expenses = expenses
-          self.user_id = user_id
-      }
+    init(id: Int? = nil, group_name: String, category: UIImage?, members: [Int], expenses: [ExpenseSplitForm]? = nil, user_id: Int? = nil) {
+        self.id = id
+        self.group_name = group_name
+        self.category = category
+        self.members = members
+        self.expenses = expenses
+        self.user_id = user_id
+    }
 }
 
 struct UserGroupLink: Codable {
     let user_id: Int
     let group_id: Int
 }
+struct UserGroupJoin: Decodable {
+    let group_id: Int
+    let groups: Group
+}
+
+
+
+struct Notifications: Codable {
+    let id: Int?
+    let recipient_id: Int
+    let group_id: Int
+    let group_name: String
+    let inviter_id: Int
+    let status: String
+    let created_at: String?
+}
+
 
 
 
@@ -138,7 +151,80 @@ class GroupDataModel {
 //            expenses: [expense2]
 //        ))
     }
-    
+   
+    func createInvitationNotification(recipientId: Int, groupId: Int, groupName: String, inviterId: Int) async -> Bool {
+        let client = SupabaseAPIClient.shared.supabaseClient
+        let notification = Notifications(
+            id: nil,
+            recipient_id: recipientId,
+            group_id: groupId,
+            group_name: groupName,
+            inviter_id: inviterId,
+            status: "pending",
+            created_at: nil
+        )
+        
+        do {
+            let response = try await client
+                .database
+                .from("notifications")
+                .insert(notification)
+                .execute()
+            print("✅ Notification created for user \(recipientId) for group \(groupId)")
+            return true
+        } catch {
+            print("❌ Error creating notification: \(error)")
+            return false
+        }
+    }
+
+    // Fetch notifications for a user
+    func fetchNotificationsForUser(userId: Int) async -> [Notifications] {
+        let client = SupabaseAPIClient.shared.supabaseClient
+        
+        do {
+            let response: PostgrestResponse<[Notifications]> = try await client
+                .database
+                .from("notifications")
+                .select()
+                .eq("recipient_id", value: userId)
+                .execute()
+            
+            return response.value ?? []
+        } catch {
+            print("❌ Error fetching notifications: \(error)")
+            return []
+        }
+    }
+
+    // Update notification status and add user to group if accepted
+    func handleNotificationAcceptance(notificationId: Int, groupId: Int, userId: Int) async -> Bool {
+        let client = SupabaseAPIClient.shared.supabaseClient
+        
+        do {
+            // Update notification status to accepted
+            let updateResponse = try await client
+                .database
+                .from("notifications")
+                .update(["status": "accepted"])
+                .eq("id", value: notificationId)
+                .execute()
+            
+            // Add user to group in user_groups table
+            let link = UserGroupLink(user_id: userId, group_id: groupId)
+            let linkResponse = try await client
+                .database
+                .from("user_groups")
+                .insert(link)
+                .execute()
+            
+            print("✅ User \(userId) added to group \(groupId) after accepting notification")
+            return true
+        } catch {
+            print("❌ Error handling notification acceptance: \(error)")
+            return false
+        }
+    }
     func addGroupToUser(userId: Int, groupId: Int) {
         guard let index = users.firstIndex(where: { $0.id == userId }) else { return }
         
@@ -278,18 +364,54 @@ class GroupDataModel {
         let client = SupabaseAPIClient.shared.supabaseClient
 
         do {
-            let response: PostgrestResponse<[Group]> = try await client
-                .rpc("get_groups_for_user", params: ["user_id_input": userId])
+            let response: [UserGroupJoin] = try await client
+                .from("user_groups")
+                .select("group_id, groups!user_groups_group_id_fkey(id, group_name, category, members, user_id)")
+                .eq("user_id", value: userId)
                 .execute()
+                .value
 
-            // Return groups sorted by the created_at timestamp in descending order
-            return response.value ?? []
+            let groups = response.map { $0.groups }
+            print("✅ Fetched \(groups.count) groups for user \(userId): \(groups.map { $0.group_name })")
+            return groups
         } catch {
             print("❌ Error fetching groups from Supabase: \(error)")
             return []
         }
     }
-
+    // Fetch members of a group from user_groups table
+    func fetchGroupMembers(groupId: Int, includeUserDetails: Bool = false, completion: @escaping (Result<[Any], Error>) -> Void) {
+        Task {
+            do {
+                let client = SupabaseAPIClient.shared.supabaseClient
+                let response: [UserGroupLink] = try await client
+                    .database
+                    .from("user_groups")
+                    .select()
+                    .eq("group_id", value: groupId)
+                    .execute()
+                    .value
+                
+                let memberIds = response.map { $0.user_id }
+                print("✅ Fetched \(memberIds.count) members for group \(groupId): \(memberIds)")
+                
+                if includeUserDetails {
+                    var users: [User] = []
+                    for userId in memberIds {
+                        if let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId) {
+                            users.append(user)
+                        }
+                    }
+                    completion(.success(users))
+                } else {
+                    completion(.success(memberIds))
+                }
+            } catch {
+                print("❌ Error fetching group members: \(error)")
+                completion(.failure(error))
+            }
+        }
+    }
 
 
 

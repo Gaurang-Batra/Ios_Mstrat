@@ -1,5 +1,6 @@
 import UIKit
 import Supabase
+
 class LoginViewController: UIViewController {
     
     @IBOutlet weak var emailTextField: UITextField!
@@ -35,26 +36,8 @@ class LoginViewController: UIViewController {
             
             // Set the background color to light gray with opacity 0.95
             view.backgroundColor = UIColor(red: 0.85, green: 0.85, blue: 0.85, alpha: 1)
-            
-            // Add bounce animation with a slight delay for each circle
-//            addBounceAnimation(to: view, delay: Double(index) * 0.3)
         }
     }
-    
-    // Add animation to each circle (bounce effect)
-//    private func addBounceAnimation(to view: UIView, delay: TimeInterval) {
-//        // Create the bounce animation
-//        let animation = CABasicAnimation(keyPath: "transform.scale")
-//        animation.fromValue = 1.0
-//        animation.toValue = 1.1
-//        animation.duration = 0.8
-//        animation.autoreverses = true
-//        animation.repeatCount = .infinity
-//        animation.beginTime = CACurrentMediaTime() + delay
-//
-//        // Add animation to the layer
-//        view.layer.add(animation, forKey: "bounce")
-//    }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -79,7 +62,22 @@ class LoginViewController: UIViewController {
         loginButton.alpha = isFormFilled ? 1.0 : 0.5
     }
     
-  
+    @IBAction func loginAsGuestTapped(_ sender: UIButton) {
+        Task {
+            if let guest = await UserDataModel.shared.createGuestUser() {
+                print("🧑‍💻 Guest user created: \(guest.fullname) with ID: \(guest.id ?? -1)")
+                DispatchQueue.main.async {
+                    self.navigateToTabBar(with: guest)
+                }
+            } else {
+                print("❌ Failed to create guest user")
+                DispatchQueue.main.async {
+                    self.showAlert(message: "Failed to create guest user. Please try again.")
+                }
+            }
+        }
+    }
+    
     @IBAction func loginButtonTapped(_ sender: UIButton) {
         guard let email = emailTextField.text, !email.isEmpty else {
             showAlert(message: "Please enter your email.")
@@ -103,7 +101,7 @@ class LoginViewController: UIViewController {
                     .single()
                     .execute()
 
-                // ✅ No need for optional unwrap — just decode directly
+                // Decode the user directly
                 let user = try JSONDecoder().decode(User.self, from: response.data)
 
                 print("✅ Logged in user: \(user.fullname)")
@@ -120,7 +118,6 @@ class LoginViewController: UIViewController {
             }
         }
     }
-
 
     func navigateToTabBar(with user: User) {
         guard let storyboard = storyboard else { return }
@@ -141,16 +138,16 @@ class LoginViewController: UIViewController {
                 switch targetVC {
                 case let homeVC as homeViewController:
                     homeVC.userId = user.id
-                    print("UserId passed to homeViewController at index \(index): \(user.id)")
+                    print("UserId passed to homeViewController at index \(index): \(user.id ?? -1)")
                 case let splitVC as SplitpalViewController:
                     splitVC.userId = user.id
-                    print("UserId passed to SplitpalViewController at index \(index): \(user.id)")
+                    print("UserId passed to SplitpalViewController at index \(index): \(user.id ?? -1)")
                 case let censusVC as CensusViewController:
                     censusVC.userId = user.id
-                    print("UserId passed to CensusViewController at index \(index): \(user.id)")
+                    print("UserId passed to CensusViewController at index \(index): \(user.id ?? -1)")
                 case let profileVC as PersonalInformationViewController:
                     profileVC.userId = user.id
-                    print("UserId passed to PersonalInformationViewController at index \(index): \(user.id)")
+                    print("UserId passed to PersonalInformationViewController at index \(index): \(user.id ?? -1)")
                 default:
                     break
                 }
@@ -164,13 +161,6 @@ class LoginViewController: UIViewController {
             }
         }
     }
-
-
-
-
-
-
-
     
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "Input Required", message: message, preferredStyle: .alert)

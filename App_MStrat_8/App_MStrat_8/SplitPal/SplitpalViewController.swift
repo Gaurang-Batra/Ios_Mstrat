@@ -1,25 +1,29 @@
+//
+//  SplitpalViewController.swift
+//  App_MStrat_8
+//
+//  Created by student-2 on 26/12/24.
+//
+
 import UIKit
 
 class SplitpalViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
     @IBOutlet weak var Balanceviewcontainer: UIView!
     @IBOutlet weak var Groupsviewcontainer: UIView!
     @IBOutlet weak var addgroupbutton: UIButton!
     @IBOutlet weak var welcomeimage: UIImageView!
     @IBOutlet weak var tableView: UITableView!
-    
     @IBOutlet weak var Willgetlabel: UILabel!
-    
     @IBOutlet weak var WillPaylabel: UILabel!
-    
     @IBOutlet weak var TotalExpenselabel: UILabel!
-    
- 
 
-    var selectedGroupIndex: Int? = nil
-    var selectedImage: UIImage? = nil
-    var userId: Int?
-    
+    var selectedGroupIndex: Int?
+    var selectedImage: UIImage?
+    var userId: Int? {
+        didSet {
+            print("SplitpalViewController userId set to: \(userId ?? -1)")
+        }
+    }
     var filteredGroups: [Group] = []
 
     override func viewDidLoad() {
@@ -48,11 +52,10 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newGroupAdded, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newExpenseAddedInGroup, object: nil)
-
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+        super.viewWillAppear(animated)
         loadUserGroups()
     }
 
@@ -60,7 +63,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
         loadUserGroups()
         updateBalanceLabels()
     }
-    
+
     func updateBalanceLabels() {
         guard let userId = self.userId else {
             print("User ID is nil, cannot calculate balances")
@@ -79,7 +82,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
             if expense.payee.contains(userId) {
                 let amountToPay = expense.splitAmounts.reduce(0) { partialResult, entry in
-                    return partialResult + entry.value
+                    partialResult + entry.value
                 }
                 totalWillPay += amountToPay
             }
@@ -89,23 +92,16 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
         WillPaylabel.text = "₹\(totalWillPay)"
     }
 
-    
     func loadUserGroups() {
         guard let userId = self.userId else {
-            print("User ID is nil, cannot filter groups")
+            print("User ID is nil, cannot fetch groups")
             return
         }
 
-        // Call the async fetchGroupsForUser method
         Task {
-            let allGroups = await GroupDataModel.shared.fetchGroupsForUser(userId: userId)
-            
-            // Filter the groups for the current user
-            filteredGroups = allGroups.filter { $0.members.contains(userId) }
-
-            print("Filtered groups for user \(userId): \(filteredGroups.map { $0.group_name })")
-            
-            // Reload the table view on the main thread
+            let groups = await GroupDataModel.shared.fetchGroupsForUser(userId: userId)
+            self.filteredGroups = groups
+            print("Loaded \(groups.count) groups for user \(userId): \(groups.map { $0.group_name })")
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
@@ -150,22 +146,22 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
     // MARK: - UITableViewDataSource Methods
 
-    // MARK: - UITableViewDataSource Methods
-
     func numberOfSections(in tableView: UITableView) -> Int {
-        return filteredGroups.count // Each group gets its own section
+        return filteredGroups.count
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1 // Only one row per section
+        return 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SplitCell", for: indexPath)
-        let group = filteredGroups[indexPath.section] // Use section instead of row
+        let group = filteredGroups[indexPath.section]
         
         cell.textLabel?.text = group.group_name
-        cell.imageView?.image = group.category
+        cell.imageView?.image = group.category ?? UIImage(systemName: "photo")
+        cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.font = .systemFont(ofSize: 16, weight: .medium)
 
         return cell
     }
@@ -173,30 +169,11 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     // MARK: - UITableViewDelegate Methods
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedGroup = filteredGroups[indexPath.section] 
+        selectedGroupIndex = indexPath.section
+        let selectedGroup = filteredGroups[indexPath.section]
         print("Selected group: \(selectedGroup.group_name)")
         performSegue(withIdentifier: "Groupsdetails", sender: self)
     }
-
-
-//    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//        return 10 // Space between sections
-//    }
-//
-//    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//        let headerView = UIView()
-//        headerView.backgroundColor = .clear
-//        return headerView
-//    }
-
-    
-    // MARK: - UITableViewDelegate Methods
-
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let selectedGroup = filteredGroups[indexPath.row]
-//        print("Selected group: \(selectedGroup.groupName)")
-//        performSegue(withIdentifier: "Groupsdetails", sender: self)
-//    }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
@@ -213,24 +190,43 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     }
 
     // MARK: - Segue Preparation
-    
+
     @IBAction func addGroupButtonTapped(_ sender: UIButton) {
+        print("Add group button tapped, userId: \(userId ?? -1)")
         performSegue(withIdentifier: "createsplitgroup", sender: self)
     }
 
+    @IBAction func notificationButtonTapped(_ sender: Any) {
+        print("Notification button tapped, userId: \(userId ?? -1)")
+        performSegue(withIdentifier: "notifications", sender: self) // Changed to "notifications"
+    }
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        print("Preparing segue with identifier: \(segue.identifier ?? "none")")
         if segue.identifier == "Groupsdetails",
            let destinationVC = segue.destination as? GroupDetailViewController,
-           let selectedIndex = tableView.indexPathForSelectedRow?.section {
+           let selectedIndex = selectedGroupIndex {
             destinationVC.userId = self.userId
             destinationVC.groupItem = filteredGroups[selectedIndex]
-        }
-        else if segue.identifier == "createsplitgroup" {
+            print("Passing userId \(self.userId ?? -1) to GroupDetailViewController")
+        } else if segue.identifier == "createsplitgroup" {
             if let navigationController = segue.destination as? UINavigationController,
                let createGroupVC = navigationController.topViewController as? CreateGroupViewController {
-                
                 createGroupVC.userId = self.userId
-                print("id passed to create splitgroup form page")
+                print("Passing userId \(self.userId ?? -1) to CreateGroupViewController")
+            } else {
+                print("Failed to cast destination to UINavigationController or CreateGroupViewController")
+            }
+        } else if segue.identifier == "notifications" { // Changed to "notifications"
+            print("Notification segue triggered, userId: \(self.userId ?? -1)")
+            if let navigationController = segue.destination as? UINavigationController,
+               let notificationVC = navigationController.topViewController as? NotificationViewController {
+                print("Passing userId to NotificationViewController: \(self.userId ?? -1)")
+                notificationVC.userId = self.userId
+                print("userId passed to NotificationViewController: \(notificationVC.userId ?? -1)")
+            } else {
+                print("Failed to cast destination to UINavigationController or NotificationViewController")
+                print("Segue destination: \(segue.destination)")
             }
         }
     }
