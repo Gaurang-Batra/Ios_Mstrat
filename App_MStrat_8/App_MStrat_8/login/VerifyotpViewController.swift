@@ -12,12 +12,13 @@ class VerifyotpViewController: UIViewController {
     var email: String?
     var fullname: String?
     var password: String?
+    var verificationCode: String? // Changed from Int? to String? to match User.verification_code
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Log entry for debugging
-        print("🔍 VerifyotpViewController loaded with email: \(email ?? "nil")")
+        print("🔍 VerifyotpViewController loaded with email: \(email ?? "nil"), verificationCode: \(verificationCode ?? "nil")")
         
         // Set up the OTP text field
         EnterOtptextfield.placeholder = "Enter OTP"
@@ -27,8 +28,8 @@ class VerifyotpViewController: UIViewController {
         // Disable the Continue button initially
         ContinueButton.isEnabled = false
         
-        // Configure circle views with animations
-        for (index, view) in circleview.enumerated() {
+        // Configure circle views
+        for view in circleview {
             let size = min(view.frame.width, view.frame.height)
             view.frame.size = CGSize(width: size, height: size)
             view.layer.cornerRadius = size / 2
@@ -59,8 +60,8 @@ class VerifyotpViewController: UIViewController {
     }
     
     @IBAction func resendOtpButtonTapped(_ sender: UIButton) {
-        guard let email = email, let fullname = fullname, let password = password else {
-            print("❌ Resend OTP failed: Missing user data")
+        guard let email = email else {
+            print("❌ Resend OTP failed: Missing email")
             showAlert(message: "User data missing. Please try signing up again.")
             return
         }
@@ -68,8 +69,9 @@ class VerifyotpViewController: UIViewController {
         ResendOtpbutton.setTitle("Sending...", for: .normal)
         ResendOtpbutton.isEnabled = false
         
-        UserDataModel.shared.createUser(email: email, fullname: fullname, password: password) { result in
-            DispatchQueue.main.async { [weak self] in
+        // Use sendPasswordResetOTP to resend OTP (simpler than recreating user)
+        UserDataModel.shared.sendPasswordResetOTP(to: email) { [weak self] result in
+            DispatchQueue.main.async {
                 self?.ResendOtpbutton.setTitle("Resend OTP", for: .normal)
                 self?.ResendOtpbutton.isEnabled = true
                 
@@ -100,19 +102,17 @@ class VerifyotpViewController: UIViewController {
         
         if isValidOtp(enteredOtp) {
             print("🔍 Verifying OTP: \(enteredOtp) for email: \(email)")
-            // Disable button to prevent multiple taps
             ContinueButton.isEnabled = false
+            
             // Verify the OTP
             UserDataModel.shared.verifyUser(email: email, code: enteredOtp) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case .success:
                     print("✅ OTP verified successfully")
-                    // OTP verified, now confirm the user in Supabase
-                    print("🔍 Waiting for Supabase to confirm user")
+                    // Confirm the user in Supabase
                     UserDataModel.shared.confirmUser(email: email) { confirmResult in
                         DispatchQueue.main.async {
-                            // Re-enable button
                             self.ContinueButton.isEnabled = true
                             switch confirmResult {
                             case .success(let confirmedUser):
@@ -122,7 +122,6 @@ class VerifyotpViewController: UIViewController {
                                     self.showAlert(message: "User confirmed, but no ID assigned. Please try again.")
                                     return
                                 }
-                                print("✅ Successfully retrieved userId: \(userId) from Supabase")
                                 self.navigateToHomeScreen(userId: userId)
                             case .failure(let error):
                                 print("❌ Confirm user failed: \(error.localizedDescription)")
@@ -130,12 +129,11 @@ class VerifyotpViewController: UIViewController {
                             }
                         }
                     }
-                    
                 case .failure(let error):
                     print("❌ OTP verification failed: \(error.localizedDescription)")
                     DispatchQueue.main.async {
                         self.ContinueButton.isEnabled = true
-                        self.showAlert(message: "Invalid OTP: \(error.localizedDescription)")
+                        self.showAlert(message: "Invalid OTP. Please try again.")
                     }
                 }
             }
@@ -152,10 +150,10 @@ class VerifyotpViewController: UIViewController {
         return otpPredicate.evaluate(with: otp)
     }
     
-    // Function to navigate to the home screen with userId
+    // Function to navigate to the tab bar controller
     private func navigateToHomeScreen(userId: Int) {
         print("🔍 Attempting navigation with userId: \(userId)")
-        guard let storyboard = storyboard else {
+        guard let storyboard = self.storyboard else {
             print("❌ Navigation failed: Storyboard is nil")
             showAlert(message: "Unable to navigate to the home screen.")
             return
@@ -167,59 +165,43 @@ class VerifyotpViewController: UIViewController {
             return
         }
         
-        guard let viewControllers = tabBarController.viewControllers else {
-            print("❌ Navigation failed: Tab bar controller has no view controllers")
-            showAlert(message: "Unable to navigate to the home screen.")
-            return
-        }
-        
-        for (index, viewController) in viewControllers.enumerated() {
-            if let navController = viewController as? UINavigationController,
-               let rootViewController = navController.viewControllers.first {
-                if let homeVC = rootViewController as? homeViewController {
-                    homeVC.userId = userId
-                    print("✅ UserId passed to homeViewController at index \(index): \(userId)")
-                }
-                if let splitpalVC = rootViewController as? SplitpalViewController {
-                    splitpalVC.userId = userId
-                    print("✅ UserId passed to SplitpalViewController at index \(index): \(userId)")
-                }
-                if let censusVC = rootViewController as? CensusViewController {
-                    censusVC.userId = userId
-                    print("✅ UserId passed to CensusViewController at index \(index): \(userId)")
-                }
-                if let profileVC = rootViewController as? PersonalInformationViewController {
-                    profileVC.userId = userId
-                    print("✅ UserId passed to PersonalInformationViewController at index \(index): \(userId)")
-                }
-            } else {
-                if let homeVC = viewController as? homeViewController {
-                    homeVC.userId = userId
-                    print("✅ UserId passed to homeViewController at index \(index): \(userId)")
-                }
-                if let splitpalVC = viewController as? SplitpalViewController {
-                    splitpalVC.userId = userId
-                    print("✅ UserId passed to SplitpalViewController at index \(index): \(userId)")
-                }
-                if let censusVC = viewController as? CensusViewController {
-                    censusVC.userId = userId
-                    print("✅ UserId passed to CensusViewController at index \(index): \(userId)")
-                }
-                if let profileVC = viewController as? PersonalInformationViewController {
-                    profileVC.userId = userId
-                    print("✅ UserId passed to PersonalInformationViewController at index \(index): \(userId)")
+        // Pass userId to relevant view controllers in the tab bar
+        if let viewControllers = tabBarController.viewControllers {
+            for viewController in viewControllers {
+                if let navController = viewController as? UINavigationController,
+                   let rootViewController = navController.viewControllers.first {
+                    passUserId(to: rootViewController, userId: userId)
+                } else {
+                    passUserId(to: viewController, userId: userId)
                 }
             }
         }
         
-        // Navigate to the main app
+        // Push the tab bar controller
         if let navController = navigationController {
-            print("✅ Navigating via push to tab bar controller with userId: \(userId)")
+            print("✅ Pushing tab bar controller with userId: \(userId)")
             navController.pushViewController(tabBarController, animated: true)
         } else {
-            print("✅ Navigating via present to tab bar controller with userId: \(userId)")
+            print("✅ Presenting tab bar controller with userId: \(userId)")
             tabBarController.modalPresentationStyle = .fullScreen
-            present(tabBarController, animated: true)
+            present(tabBarController, animated: true, completion: nil)
+        }
+    }
+    
+    // Helper function to pass userId to supported view controllers
+    private func passUserId(to viewController: UIViewController, userId: Int) {
+        if let homeVC = viewController as? homeViewController {
+            homeVC.userId = userId
+            print("✅ UserId passed to homeViewController: \(userId)")
+        } else if let splitpalVC = viewController as? SplitpalViewController {
+            splitpalVC.userId = userId
+            print("✅ UserId passed to SplitpalViewController: \(userId)")
+        } else if let censusVC = viewController as? CensusViewController {
+            censusVC.userId = userId
+            print("✅ UserId passed to CensusViewController: \(userId)")
+        } else if let profileVC = viewController as? PersonalInformationViewController {
+            profileVC.userId = userId
+            print("✅ UserId passed to PersonalInformationViewController: \(userId)")
         }
     }
     

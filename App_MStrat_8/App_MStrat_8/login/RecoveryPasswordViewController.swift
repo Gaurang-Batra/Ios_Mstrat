@@ -34,6 +34,10 @@ class RecoveryPasswordViewController: UIViewController {
             view.layer.masksToBounds = true
             view.backgroundColor = UIColor(red: 0.85, green: 0.85, blue: 0.85, alpha: 1.0)
         }
+        
+        // Configure password fields for security
+        newPasswordTextField.isSecureTextEntry = true
+        confirmPasswordTextField.isSecureTextEntry = true
     }
 
     private func setupActivityIndicator() {
@@ -56,26 +60,31 @@ class RecoveryPasswordViewController: UIViewController {
 
     @IBAction func sendEmailButtonTapped(_ sender: UIButton) {
         guard let email = email else {
+            print("Error: Email not provided")
             showAlert(message: "Email not provided.", isError: true)
             return
         }
         
         guard let resetCode = resetCodeTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !resetCode.isEmpty else {
+            print("Error: Empty reset code")
             showAlert(message: "Please enter the reset code.", isError: true)
             return
         }
         
         guard resetCode.count == 4, resetCode.allSatisfy({ $0.isNumber }) else {
+            print("Error: Invalid OTP format - \(resetCode)")
             showAlert(message: "Please enter a valid 4-digit OTP.", isError: true)
             return
         }
         
         guard let newPassword = newPasswordTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !newPassword.isEmpty else {
+            print("Error: Empty new password")
             showAlert(message: "Please enter a new password.", isError: true)
             return
         }
         
         guard let confirmPassword = confirmPasswordTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), confirmPassword == newPassword else {
+            print("Error: Passwords do not match")
             showAlert(message: "Passwords do not match.", isError: true)
             return
         }
@@ -96,15 +105,22 @@ class RecoveryPasswordViewController: UIViewController {
                                 switch result {
                                 case .success:
                                     UserDataModel.shared.clearResetOTP(email: email)
+                                    // Clear text fields for better UX
+                                    self.resetCodeTextField.text = ""
+                                    self.newPasswordTextField.text = ""
+                                    self.confirmPasswordTextField.text = ""
+                                    // Show success alert and navigate to LoginViewController
                                     self.showAlert(message: "Password reset successful! You can now log in with your new password.", isError: false) { _ in
-                                        // Navigate only after successful reset
-                                        if let navigationController = self.navigationController {
-                                            navigationController.popToRootViewController(animated: true)
+                                        print("Success: Password reset for \(email). Navigating to LoginViewController")
+                                        if let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController {
+                                            self.navigationController?.pushViewController(loginVC, animated: true)
                                         } else {
-                                            self.dismiss(animated: true, completion: nil)
+                                            print("Error: Failed to instantiate LoginViewController with storyboard ID")
+                                            self.showAlert(message: "Failed to navigate to login screen.", isError: true)
                                         }
                                     }
                                 case .failure(let error):
+                                    print("Error: Failed to reset password for \(email) - \(error.localizedDescription)")
                                     self.showAlert(message: "Failed to reset password: \(error.localizedDescription)", isError: true)
                                 }
                             }
@@ -113,6 +129,7 @@ class RecoveryPasswordViewController: UIViewController {
                         DispatchQueue.main.async {
                             self.activityIndicator.stopAnimating()
                             sender.isEnabled = true
+                            print("Error: No user found for email \(email)")
                             self.showAlert(message: "User not found.", isError: true)
                         }
                     }
@@ -120,6 +137,7 @@ class RecoveryPasswordViewController: UIViewController {
                     DispatchQueue.main.async {
                         self.activityIndicator.stopAnimating()
                         sender.isEnabled = true
+                        print("Error: Invalid OTP for email \(email)")
                         self.showAlert(message: "Invalid OTP.", isError: true)
                     }
                 }
@@ -127,6 +145,7 @@ class RecoveryPasswordViewController: UIViewController {
                 DispatchQueue.main.async {
                     self.activityIndicator.stopAnimating()
                     sender.isEnabled = true
+                    print("Error: Failed to process request for email \(email) - \(error.localizedDescription)")
                     self.showAlert(message: "Failed to process request. Please try again later.", isError: true)
                 }
             }
@@ -139,17 +158,4 @@ class RecoveryPasswordViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: completion))
         present(alert, animated: true, completion: nil)
     }
-    
-//    private func showSuccessAlert(message: String) {
-//        let alert = UIAlertController(title: "Success", message: message, preferredStyle: .alert)
-//        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-//            // Navigate back to login screen or dismiss
-//            if let navigationController = self.navigationController {
-//                navigationController.popToRootViewController(animated: true)
-//            } else {
-//                self.dismiss(animated: true, completion: nil)
-//            }
-//        }))
-//        present(alert, animated: true, completion: nil)
-//    }
 }

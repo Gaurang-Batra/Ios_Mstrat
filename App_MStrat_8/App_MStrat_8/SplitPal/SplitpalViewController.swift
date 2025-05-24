@@ -100,8 +100,9 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
         Task {
             let groups = await GroupDataModel.shared.fetchGroupsForUser(userId: userId)
-            self.filteredGroups = groups
-            print("Loaded \(groups.count) groups for user \(userId): \(groups.map { $0.group_name })")
+            // Sort groups by id (corresponding to group_id, newest first)
+            self.filteredGroups = groups.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+            print("Loaded \(self.filteredGroups.count) groups for user \(userId): \(self.filteredGroups.map { $0.group_name })")
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
@@ -157,12 +158,11 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SplitCell", for: indexPath)
         let group = filteredGroups[indexPath.section]
-        
+        print("Displaying group at section \(indexPath.section): \(group.group_name) (group_id: \(group.id ?? -1))")
         cell.textLabel?.text = group.group_name
         cell.imageView?.image = group.category ?? UIImage(systemName: "photo")
         cell.textLabel?.numberOfLines = 0
         cell.textLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-
         return cell
     }
 
@@ -198,7 +198,7 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
 
     @IBAction func notificationButtonTapped(_ sender: Any) {
         print("Notification button tapped, userId: \(userId ?? -1)")
-        performSegue(withIdentifier: "notifications", sender: self) // Changed to "notifications"
+        performSegue(withIdentifier: "notifications", sender: self)
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -217,15 +217,18 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
             } else {
                 print("Failed to cast destination to UINavigationController or CreateGroupViewController")
             }
-        } else if segue.identifier == "notifications" { // Changed to "notifications"
-            print("Notification segue triggered, userId: \(self.userId ?? -1)")
-            if let navigationController = segue.destination as? UINavigationController,
-               let notificationVC = navigationController.topViewController as? NotificationViewController {
+        } else if segue.identifier == "notifications" {
+            if let notificationVC = segue.destination as? NotificationViewController {
                 print("Passing userId to NotificationViewController: \(self.userId ?? -1)")
                 notificationVC.userId = self.userId
                 print("userId passed to NotificationViewController: \(notificationVC.userId ?? -1)")
+            } else if let navigationController = segue.destination as? UINavigationController,
+                      let notificationVC = navigationController.topViewController as? NotificationViewController {
+                print("Passing userId to NotificationViewController (via UINavigationController): \(self.userId ?? -1)")
+                notificationVC.userId = self.userId
+                print("userId passed to NotificationViewController: \(notificationVC.userId ?? -1)")
             } else {
-                print("Failed to cast destination to UINavigationController or NotificationViewController")
+                print("Failed to cast destination to NotificationViewController or UINavigationController")
                 print("Segue destination: \(segue.destination)")
             }
         }

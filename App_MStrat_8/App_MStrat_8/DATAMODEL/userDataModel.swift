@@ -16,6 +16,8 @@ struct User: Codable {
     var expenses: [Expense]?
     var allowance: [Allowance]?
     var is_guest: Bool?
+
+   
 }
 
 class UserDataModel {
@@ -35,18 +37,46 @@ class UserDataModel {
     func getAllUsersfromsupabase(completion: @escaping ([User]?, Error?) -> Void) {
         Task {
             do {
-                let users: [User] = try await SupabaseAPIClient.shared.supabaseClient
+                let query = SupabaseAPIClient.shared.supabaseClient
                     .database
                     .from("users")
-                    .select()
-                    .execute()
-                    .value
+                    .select("id, email, fullname, password, is_verified, verification_code, is_guest, groups")
+
+                let response: PostgrestResponse<[User]> = try await query.execute()
+                let users = response.value
+
+                if users.isEmpty {
+                    print("⚠️ No users found.")
+                } else {
+                    print("✅ Fetched users: \(users)")
+                }
+
                 completion(users, nil)
+
             } catch {
+                print("❌ Error fetching users: \(error)")
+                if let decodingError = error as? DecodingError {
+                    switch decodingError {
+                        case .typeMismatch(let type, let context):
+                            print("Type mismatch for \(type): \(context.debugDescription)")
+                            print("Coding path: \(context.codingPath)")
+                        case .valueNotFound(let type, let context):
+                            print("Value not found for \(type): \(context.debugDescription)")
+                        case .keyNotFound(let key, let context):
+                            print("Key not found: \(key), \(context.debugDescription)")
+                        case .dataCorrupted(let context):
+                            print("Data corrupted: \(context.debugDescription)")
+                        @unknown default:
+                            print("Unknown decoding error: \(error)")
+                    }
+                }
                 completion(nil, error)
             }
         }
     }
+
+
+
     
     func getUser(by id: Int) -> User? {
         return users.first { $0.id == id }
@@ -89,6 +119,30 @@ class UserDataModel {
         guard let index = users.firstIndex(where: { $0.id == userId }) else { return }
         users[index].currentGoal = goal
     }
+    func deleteUser(userId: Int, completion: @escaping (Result<Void, Error>) -> Void) {
+            Task {
+                do {
+                    try await client
+                        .database
+                        .from("users")
+                        .delete()
+                        .eq("id", value: userId)
+                        .execute()
+                    // Update local cache
+                    users.removeAll { $0.id == userId }
+//                    pendingUsers.removeAll { $0.value.id == userId }
+                    print("🗑️ User \(userId) deleted successfully.")
+                    DispatchQueue.main.async {
+                        completion(.success(()))
+                    }
+                } catch {
+                    print("❌ Error deleting user: \(error)")
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
+                }
+            }
+        }
     
     func deleteGuestUser(user: User) {
         guard user.is_guest == true, let id = user.id else { return }

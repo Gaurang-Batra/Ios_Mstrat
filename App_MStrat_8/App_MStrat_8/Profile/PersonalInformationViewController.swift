@@ -7,7 +7,7 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
     @IBOutlet weak var signOutButton: UIButton!
     @IBOutlet weak var nameLabel: UILabel!
     
-    let identities = ["a", "b", "c"]
+    let identities = ["a", "SIgnin&security", "c"]
     var val = ["Personal Information", "Sign In & Security", "Privacy Policy"]
     
     var userId: Int?
@@ -159,7 +159,7 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
                 }
             } else if indexPath.row == 1 {
                 // For other screens, try setting via property - you'll need to add explicit casting here for those view controllers too
-                if let securityVC = viewController as? SignInSecurityViewController {  // Replace with your actual class
+                if let securityVC = viewController as? Signin_securityTableViewController {  // Replace with your actual class
                     securityVC.userId = self.userId
                     print("Passing userId: \(userId ?? -1) to \(val[indexPath.row]) screen")
                 }

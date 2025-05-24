@@ -2,6 +2,7 @@ import UIKit
 import Supabase
 
 class GoalViewController: UIViewController {
+    
     @IBOutlet weak var savebutton: UIBarButtonItem!
     @IBOutlet weak var Goaltitletextfield: UITextField!
     @IBOutlet weak var GoalAmount: UITextField!
@@ -11,7 +12,11 @@ class GoalViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         print("This is in the GoalViewController, userId: \(userId ?? -1)")
+        
+        // ✅ Lock past dates - only allow today or future dates
+        Goaldeadline.minimumDate = Date()
     }
 
     @IBAction func cancelbutton(_ sender: Any) {

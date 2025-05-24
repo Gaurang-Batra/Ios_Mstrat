@@ -2,13 +2,12 @@
 //  membersListTableViewController.swift
 //  App_MStrat_8
 //
-//  Created by Gaurang  on 06/12/24.
-//
 import UIKit
 
 class MembersListTableViewController: UITableViewController {
     
     var groupId: Int? // Group ID to fetch members from user_groups
+    var currentUserId: Int? // Current user's ID for sending invitations
     private var members: [Int] = [] // Store member IDs fetched from user_groups
     
     override func viewDidLoad() {
@@ -59,22 +58,139 @@ class MembersListTableViewController: UITableViewController {
     // MARK: - Add Button Action
     
     @objc func addButtonTapped() {
-        let alert = UIAlertController(title: "Add New Member", message: "Enter user ID", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add New Member", message: "Enter user's full name", preferredStyle: .alert)
         
         alert.addTextField { textField in
-            textField.placeholder = "User ID"
-            textField.keyboardType = .numberPad
+            textField.placeholder = "Full Name"
+            textField.keyboardType = .default // Allow text input for names
+            textField.autocapitalizationType = .words // Capitalize words for names
         }
         
         let addAction = UIAlertAction(title: "Add", style: .default) { _ in
-            guard let textField = alert.textFields?.first, let input = textField.text, let userId = Int(input), let groupId = self.groupId else {
+            guard let textField = alert.textFields?.first,
+                  let fullName = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !fullName.isEmpty,
+                  let groupId = self.groupId else {
                 print("❌ Invalid input or group ID")
+                self.showAlert(message: "Please enter a valid name.", isError: true)
+                return
+            }
+            
+            // Get current user ID (must be passed explicitly)
+            guard let currentUserId = self.currentUserId else {
+                print("❌ Current user ID not available")
+                self.showAlert(message: "You must be logged in to send invitations.", isError: true)
                 return
             }
             
             Task {
-                await GroupDataModel.shared.addUsersToGroupInUserGroupsTable(groupId: Int64(groupId), userIds: [userId])
-                self.fetchMembers() // Refresh member list
+                // Fetch all users to find the one with the matching name
+                UserDataModel.shared.getAllUsersfromsupabase { users, error in
+                    if let error = error {
+                        print("❌ Error fetching users: \(error.localizedDescription)")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "Failed to fetch users. Please try again.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    guard let users = users else {
+                        print("❌ No users returned")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "No users found. Please try again.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    // Find users with the exact full name (case-insensitive)
+                    let matchingUsers = users.filter { $0.fullname.lowercased() == fullName.lowercased() }
+                    
+                    if matchingUsers.isEmpty {
+                        print("❌ No user found with name '\(fullName)'")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "No user found with the name '\(fullName)'.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    if matchingUsers.count > 1 {
+                        print("❌ Multiple users found with name '\(fullName)'")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "Multiple users found with the name '\(fullName)'. Please contact support.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    let invitedUser = matchingUsers.first!
+                    guard let invitedUserId = invitedUser.id else {
+                        print("❌ Invited user has no ID")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "Invalid user data. Please try again.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    // Prevent inviting the current user
+                    if invitedUserId == currentUserId {
+                        print("❌ Cannot invite yourself")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "You cannot invite yourself.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    // Prevent inviting an existing member
+                    if self.members.contains(invitedUserId) {
+                        print("❌ User \(invitedUserId) is already a member")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "\(fullName) is already a member of this group.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    // Prevent inviting a guest user
+                    if invitedUser.is_guest == true {
+                        print("❌ Cannot invite guest user '\(fullName)'")
+                        DispatchQueue.main.async {
+                            self.showAlert(message: "Cannot invite guest users.", isError: true)
+                        }
+                        return
+                    }
+                    
+                    // Fetch group for the invitation
+                    Task {
+                        guard let group = await GroupDataModel.shared.fetchGroupById(groupId: groupId) else {
+                            print("❌ Group not found for group ID \(groupId)")
+                            DispatchQueue.main.async {
+                                self.showAlert(message: "Failed to fetch group details. Please try again.", isError: true)
+                            }
+                            return
+                        }
+                        
+                        let groupName = group.group_name
+                        
+                        // Send invitation
+                        let success = await GroupDataModel.shared.createInvitationNotification(
+                            recipientId: invitedUserId,
+                            groupId: groupId,
+                            groupName: groupName,
+                            inviterId: currentUserId
+                        )
+                        
+                        DispatchQueue.main.async {
+                            if success {
+                                print("✅ Invitation sent to user \(invitedUserId) (\(fullName)) for group \(groupId)")
+                                self.showAlert(message: "Invitation sent to \(fullName) successfully.", isError: false) { _ in
+                                    // Refresh members in case the user accepts the invitation later
+                                    self.fetchMembers()
+                                }
+                            } else {
+                                print("❌ Failed to send invitation to user \(invitedUserId) (\(fullName))")
+                                self.showAlert(message: "Failed to send invitation to \(fullName). Please try again.", isError: true)
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -98,6 +214,9 @@ class MembersListTableViewController: UITableViewController {
                 }
             } else {
                 print("❌ No user found for memberId \(memberId)")
+                DispatchQueue.main.async {
+                    self.showAlert(message: "User not found.", isError: true)
+                }
             }
         }
     }
@@ -122,12 +241,24 @@ class MembersListTableViewController: UITableViewController {
                     self.fetchMembers() // Refresh member list
                 } catch {
                     print("❌ Error removing user from group: \(error)")
+                    DispatchQueue.main.async {
+                        self.showAlert(message: "Failed to remove user: \(error.localizedDescription)", isError: true)
+                    }
                 }
             }
         }
         
         alert.addAction(cancelAction)
         alert.addAction(confirmAction)
+        present(alert, animated: true)
+    }
+    
+    // MARK: - Alert Helper
+    
+    private func showAlert(message: String, isError: Bool, completion: ((UIAlertAction) -> Void)? = nil) {
+        let title = isError ? "Error" : "Success"
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: completion))
         present(alert, animated: true)
     }
     
@@ -180,10 +311,6 @@ class MembersListTableViewController: UITableViewController {
         return cell
     }
 }
-
-
-
-
 //
 //class MembersListTableViewController: UITableViewController {
 //

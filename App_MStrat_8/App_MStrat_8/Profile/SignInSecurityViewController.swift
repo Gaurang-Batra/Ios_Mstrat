@@ -8,13 +8,13 @@ class SignInSecurityViewController: UIViewController {
     @IBOutlet weak var eyeButton1: UIButton!
     @IBOutlet weak var eyeButton2: UIButton!
     @IBOutlet weak var eyeButton3: UIButton!
-
+    
     var userId: Int?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print ("this id is in the sign-in & security : \(userId)")
+        print("this id is in the sign-in & security: \(userId ?? 0)")
 
         // Set initial password field properties
         passwordTextField1.isSecureTextEntry = true
@@ -78,7 +78,7 @@ class SignInSecurityViewController: UIViewController {
                     return
                 }
 
-                // Update the password in the database (assuming there's a method to do so)
+                // Update the password in the database
                 UserDataModel.shared.updatePassword(userId: userId, newPassword: newPassword) { updateResult in
                     switch updateResult {
                     case .success:
@@ -87,7 +87,6 @@ class SignInSecurityViewController: UIViewController {
                         self.showAlert(title: "Error", message: "Failed to update password: \(error.localizedDescription)")
                     }
                 }
-
             } else {
                 self.showAlert(title: "Error", message: "User not found.")
             }
@@ -95,12 +94,26 @@ class SignInSecurityViewController: UIViewController {
     }
 
 
-
-    // Helper function to show alerts
-    func showAlert(title: String, message: String) {
+    // Helper function to show alerts with optional completion
+    func showAlert(title: String, message: String, completion: (() -> Void)? = nil) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+            completion?()
+        }
         alertController.addAction(okAction)
         present(alertController, animated: true, completion: nil)
+    }
+
+    // Navigate to login screen after deletion
+    private func navigateToLoginScreen() {
+        // Assuming you have a login screen in the storyboard
+        if let loginVC = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") {
+            // Set as root view controller or present modally
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.rootViewController = UINavigationController(rootViewController: loginVC)
+                window.makeKeyAndVisible()
+            }
+        }
     }
 }

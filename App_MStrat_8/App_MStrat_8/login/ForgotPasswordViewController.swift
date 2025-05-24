@@ -47,6 +47,8 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     private func setupTextField() {
         emailTextField.delegate = self
         emailTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+        emailTextField.autocapitalizationType = .none
+        emailTextField.keyboardType = .emailAddress
     }
 
     private func addUnderline(to textField: UITextField) {
@@ -68,12 +70,14 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
 
     @IBAction func sendEmailButtonTapped(_ sender: UIButton) {
         guard let email = emailTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !email.isEmpty else {
+            print("Error: Empty email field")
             showAlert(message: "Please enter your email.", isError: true)
             return
         }
 
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         guard emailPredicate.evaluate(with: email) else {
+            print("Error: Invalid email format - \(email)")
             showAlert(message: "Please enter a valid email address.", isError: true)
             return
         }
@@ -91,8 +95,21 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
 
                             switch result {
                             case .success:
-                                self.performSegue(withIdentifier: "goToRecoveryPassword", sender: email)
-                            case .failure:
+                                // Clear email text field for better UX
+                                self.emailTextField.text = ""
+                                // Show success alert and navigate to RecoveryPasswordViewController
+                                self.showAlert(message: "OTP sent successfully to \(email). Please check your email to proceed.", isError: false) { _ in
+                                    print("Success: OTP sent to \(email). Navigating to RecoveryPasswordViewController")
+                                    if let recoveryVC = self.storyboard?.instantiateViewController(withIdentifier: "RecoveryPasswordViewController") as? RecoveryPasswordViewController {
+                                        recoveryVC.email = email
+                                        self.navigationController?.pushViewController(recoveryVC, animated: true)
+                                    } else {
+                                        print("Error: Failed to instantiate RecoveryPasswordViewController with storyboard ID")
+                                        self.showAlert(message: "Failed to navigate to password recovery screen.", isError: true)
+                                    }
+                                }
+                            case .failure(let error):
+                                print("Error: Failed to send OTP to \(email) - \(error.localizedDescription)")
                                 self.showAlert(message: "Failed to send OTP. Please try again.", isError: true)
                             }
                         }
@@ -101,6 +118,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
                     DispatchQueue.main.async {
                         self.activityIndicator.stopAnimating()
                         self.sendButton.isEnabled = true
+                        print("Error: No account found for email \(email)")
                         self.showAlert(message: "No account found with this email.", isError: true)
                     }
                 }
@@ -108,25 +126,17 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
                 DispatchQueue.main.async {
                     self.activityIndicator.stopAnimating()
                     self.sendButton.isEnabled = true
+                    print("Error: Failed to process request for email \(email) - \(error.localizedDescription)")
                     self.showAlert(message: "Failed to process request. Please try again later.", isError: true)
                 }
             }
         }
     }
 
-
     private func showAlert(message: String, isError: Bool, completion: ((UIAlertAction) -> Void)? = nil) {
         let title = isError ? "Error" : "Success"
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: completion))
         present(alert, animated: false, completion: nil)
-    }
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "goToRecoveryPassword",
-           let destinationVC = segue.destination as? RecoveryPasswordViewController,
-           let email = sender as? String {
-            destinationVC.email = email
-        }
     }
 }

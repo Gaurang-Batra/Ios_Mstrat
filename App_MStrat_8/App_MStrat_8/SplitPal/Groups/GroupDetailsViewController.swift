@@ -20,10 +20,16 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     @IBAction func addedmemberbuttontapped(_ sender: UIButton) {
         print(groupItem?.group_name ?? "No group name")
         print(groupItem?.id ?? "No group ID")
-        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
-        filterBalances()
-        tableView.reloadData()
-        updateMembersButton() // Refresh member names
+        
+        SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
+            guard let self = self else { return }
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
+            self.filterBalances()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.updateMembersButton() // Refresh member names
+            }
+        }
     }
     
     private var expenses: [ExpenseSplitForm] = []
@@ -41,8 +47,16 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         // Fetch and display member names
         updateMembersButton()
         
-        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id ?? 0)
-        filterBalances()
+        // Fetch expenses asynchronously
+        SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id ?? 0) { [weak self] expenses in
+            guard let self = self else { return }
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
+            self.filterBalances()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.updateExpenseSum()
+            }
+        }
         
         groupnamelabel.text = group.group_name
         groupimageoutlet.image = group.category
@@ -57,17 +71,21 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         SegmentedControllerforgroup.addTarget(self, action: #selector(segmentControlChanged), for: .valueChanged)
         
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newExpenseAddedInGroup, object: nil)
-        
-        updateExpenseSum()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
-        filterBalances()
-        tableView.reloadData()
-        updateExpenseSum()
-        updateSeparatorStyle()
+        
+        SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
+            guard let self = self else { return }
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
+            self.filterBalances()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.updateExpenseSum()
+                self.updateSeparatorStyle()
+            }
+        }
     }
     
     // MARK: - Helper Functions
@@ -95,10 +113,15 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     
     @objc func reloadTableView() {
         print("Reloading table view...")
-        balances = SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0)
-        filterBalances()
-        tableView.reloadData()
-        updateExpenseSum()
+        SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
+            guard let self = self else { return }
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
+            self.filterBalances()
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                self.updateExpenseSum()
+            }
+        }
     }
     
     @objc func segmentControlChanged() {
@@ -135,12 +158,12 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         myBalances = tempBalances.filter {
             (currentUserDisplayName != nil && $0.paidBy.contains(currentUserDisplayName!)) ||
             (userId != nil && $0.payee.contains(userId!))
-        }
+        }.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
         
         othersBalances = tempBalances.filter {
             (currentUserDisplayName == nil || !$0.paidBy.contains(currentUserDisplayName!)) &&
             (userId == nil || !$0.payee.contains(userId!))
-        }
+        }.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
     }
     
     func updateSeparatorStyle() {
@@ -302,6 +325,10 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
                     destinationVC.groupId = groupId
                     print("Sending groupId: \(groupId)")
                 }
+                if let userId = self.userId {
+                            destinationVC.currentUserId = userId
+                            print("Sending userId: \(userId)")
+                        }
             }
         }
     }

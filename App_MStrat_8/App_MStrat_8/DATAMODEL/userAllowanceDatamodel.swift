@@ -8,7 +8,7 @@
 import Foundation
 import Supabase
 
-struct Allowance:Codable {
+struct Allowance:Codable {  
     var amount: Double
     var isRecurring: Bool?
     var duration: Duration?

@@ -8,7 +8,6 @@ class SignUpViewController: UIViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var signUpButton: UIButton!
     @IBOutlet var circleview: [UIView]!
-    
     @IBOutlet weak var eyebutton: UIButton!
     
     override func viewDidLoad() {
@@ -25,13 +24,11 @@ class SignUpViewController: UIViewController {
         signUpButton.isEnabled = false
         
         // Make views circular and set light gray color with opacity 0.95
-        for (index, view) in circleview.enumerated() {
+        for view in circleview {
             let size = min(view.frame.width, view.frame.height)
             view.frame.size = CGSize(width: size, height: size)
             view.layer.cornerRadius = size / 2
             view.layer.masksToBounds = true
-            
-            // Set background color to light gray with 0.95 opacity
             view.backgroundColor = UIColor(red: 0.85, green: 0.85, blue: 0.85, alpha: 1)
         }
     }
@@ -84,17 +81,9 @@ class SignUpViewController: UIViewController {
                 case .success(let newUser):
                     print("Verification email sent for user: \(newUser.email)")
                     
-                    // Navigate to the verification screen
+                    // Perform segue to the verification screen
                     DispatchQueue.main.async { [weak self] in
-                        guard let self = self, let storyboard = self.storyboard else { return }
-                        if let verifyVC = storyboard.instantiateViewController(withIdentifier: "verifycode") as? VerifyotpViewController {
-                            // Pass user data to verification screen
-                            verifyVC.email = newUser.email
-                            verifyVC.fullname = newUser.fullname
-                            verifyVC.password = newUser.password
-                            // Push to verification screen
-                            self.navigationController?.pushViewController(verifyVC, animated: true)
-                        }
+                        self?.performSegue(withIdentifier: "verifycode", sender: newUser)
                     }
                     
                 case .failure(let error):
@@ -107,10 +96,23 @@ class SignUpViewController: UIViewController {
         }
     }
     
+    // Prepare for segue to pass data
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "verifycode",
+           let verifyVC = segue.destination as? VerifyotpViewController,
+           let newUser = sender as? User {
+            // Pass user data to verification screen
+            verifyVC.email = newUser.email
+            verifyVC.fullname = newUser.fullname
+            verifyVC.password = newUser.password
+            verifyVC.verificationCode = newUser.verification_code
+        }
+    }
+    
     // Helper function to validate email
     private func isValidEmail(_ email: String) -> Bool {
         let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-        let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
         return emailPred.evaluate(with: email)
     }
     
@@ -146,11 +148,9 @@ class SignUpViewController: UIViewController {
     // Method to toggle password visibility and change the button image
     func togglePasswordVisibility(for textField: UITextField, button: UIButton) {
         if textField.isSecureTextEntry {
-            // If the text is currently hidden (dots), show it
             textField.isSecureTextEntry = false
             button.setImage(UIImage(named: "icons8-eye-50"), for: .normal)
         } else {
-            // If the text is currently visible, hide it (dots)
             textField.isSecureTextEntry = true
             button.setImage(UIImage(named: "icons8-blind-50"), for: .normal)
         }

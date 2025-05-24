@@ -10,7 +10,7 @@ struct Goal: Codable {
     var user_id: Int? // ✅ Add this
 
     init(title: String, amount: Int, deadline: Date, savings: Int? = nil, user_id: Int? = nil) {
-        self.title = title
+        self.title = title  
         self.amount = amount
         self.deadline = deadline
         self.savings = savings

@@ -4,33 +4,68 @@
 //
 //  Created by Guest1 on 24/05/25.
 //
-
 import UIKit
 
 class Signin_securityTableViewController: UITableViewController {
-
+    
+    var userId: Int?
+    
+    // Data for the table view cells
+    private let cellTitles = ["Reset Password", "Delete Account"]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        print("🔐 Signin & Security screen loaded. userId: \(userId ?? -1)")
+        
+        // Register a basic table view cell
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SecurityCell")
     }
-
+    
     // MARK: - Table view data source
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return 0
+        return cellTitles.count // Returns 2 for "Reset Password" and "Delete Account"
     }
-
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SecurityCell", for: indexPath)
+        
+        // Configure the cell
+        cell.textLabel?.text = cellTitles[indexPath.row]
+        cell.accessoryType = .disclosureIndicator // Add arrow to indicate navigation
+        
+        return cell
+    }
+    
+    // MARK: - Table view delegate
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if indexPath.section == 0 {
+            switch indexPath.row {
+            case 0:
+                // Reset Password
+                if let changePasswordVC = storyboard?.instantiateViewController(withIdentifier: "changepasswordVC") as? SignInSecurityViewController {
+                    changePasswordVC.userId = userId
+                    navigationController?.pushViewController(changePasswordVC, animated: true)
+                }
+            case 1:
+                // Delete Account
+                if let deleteUserVC = storyboard?.instantiateViewController(withIdentifier: "deleteuserVC") as? DeleteUserViewController {
+                    deleteUserVC.userId = userId
+                    navigationController?.pushViewController(deleteUserVC, animated: true)
+                }
+            default:
+                break
+            }
+        }
+    }
+}
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
@@ -86,4 +121,4 @@ class Signin_securityTableViewController: UITableViewController {
     }
     */
 
-}
+

@@ -205,7 +205,7 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
                         self.remaininfAllowancelabel.textColor = .systemGreen
                     }
                     
-                    if remaining <= 0 {
+                    if remaining < 0 {
                         let alert = UIAlertController(
                             title: "Allowance Limit Reached",
                             message: "You have exceeded your total allowance!",
