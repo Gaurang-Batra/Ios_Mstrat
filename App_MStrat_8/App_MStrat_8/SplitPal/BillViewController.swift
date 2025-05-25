@@ -4,7 +4,6 @@
 //
 //  Created by student-2 on 20/12/24.
 //
-
 import UIKit
 
 enum ExpenseCate: String, CaseIterable {
@@ -59,6 +58,8 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     var selectedimage: UIImage?
     private var expenses: [ExpenseSplitForm] = []
+    private var customSplitAmounts: [Int: Double] = [:]
+    var selectedPayer: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -110,30 +111,6 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         loadExpenses()
     }
     
-    @objc func segmentedControlChanged() {
-        let isEnabled = segmentedcontroller.selectedSegmentIndex == 1
-        for (index, _) in groupMembers.enumerated() {
-            if let cell = mytableview.cellForRow(at: IndexPath(row: index, section: 0)) as? SplitAmountTableViewCell {
-                cell.Splitamount.isUserInteractionEnabled = isEnabled
-            }
-        }
-    }
-    
-    @objc func priceTextChanged(_ textField: UITextField) {
-        if let priceText = textField.text, let price = Double(priceText) {
-            updateSplitAmounts(with: price)
-        }
-    }
-    
-    private func loadExpenses() {
-        expenses = SplitExpenseDataModel.shared.getAllExpenseSplits()
-        mytableview.reloadData()
-    }
-    
-    @objc private func onNewExpenseAdded() {
-        loadExpenses()
-    }
-    
     private var underlineLayers: [UIButton: CALayer] = [:]
     
     private func addUnderlineToButton(_ button: UIButton) {
@@ -145,17 +122,26 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         underlineLayers[button] = underline
     }
     
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        if textField == pricetextfield {
+    private func customizeTextField(_ textField: UITextField) {
+        textField.borderStyle = .none
+        let underline = CALayer()
+        underline.frame = CGRect(x: 0, y: textField.frame.height - 1, width: textField.frame.width, height: 1)
+        underline.backgroundColor = UIColor.lightGray.cgColor
+        textField.layer.addSublayer(underline)
+    }
+    
+    @objc func priceTextChanged(_ textField: UITextField) {
+        if segmentedcontroller.selectedSegmentIndex == 0 {
             if let priceText = textField.text, let price = Double(priceText) {
                 updateSplitAmounts(with: price)
+            } else {
+                updateSplitAmounts(with: 0.0)
             }
         }
-        return true
     }
     
     func updateSplitAmounts(with price: Double) {
-        let splitAmount = price / Double(groupMembers.count)
+        let splitAmount = groupMembers.isEmpty ? 0.0 : price / Double(groupMembers.count)
         for (index, _) in groupMembers.enumerated() {
             if let cell = mytableview.cellForRow(at: IndexPath(row: index, section: 0)) as? SplitAmountTableViewCell {
                 cell.Splitamount.text = String(format: "%.2f", splitAmount)
@@ -163,12 +149,46 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
-    private func customizeTextField(_ textField: UITextField) {
-        textField.borderStyle = .none
-        let underline = CALayer()
-        underline.frame = CGRect(x: 0, y: textField.frame.height - 1, width: textField.frame.width, height: 1)
-        underline.backgroundColor = UIColor.lightGray.cgColor
-        textField.layer.addSublayer(underline)
+    @objc func segmentedControlChanged() {
+        let isCustomSplit = segmentedcontroller.selectedSegmentIndex == 1
+        if isCustomSplit {
+            // Initialize customSplitAmounts with equal splits if not already set
+            if let priceText = pricetextfield.text, let price = Double(priceText) {
+                let splitAmount = groupMembers.isEmpty ? 0.0 : price / Double(groupMembers.count)
+                customSplitAmounts = Dictionary(uniqueKeysWithValues: groupMembers.map { ($0, splitAmount) })
+            }
+        } else {
+            // Clear custom amounts when switching back to equal split
+            customSplitAmounts.removeAll()
+        }
+        
+        for (index, _) in groupMembers.enumerated() {
+            if let cell = mytableview.cellForRow(at: IndexPath(row: index, section: 0)) as? SplitAmountTableViewCell {
+                cell.Splitamount.isUserInteractionEnabled = isCustomSplit
+                if isCustomSplit {
+                    let memberId = groupMembers[index]
+                    let amount = customSplitAmounts[memberId] ?? 0.0
+                    cell.Splitamount.text = String(format: "%.2f", amount)
+                } else {
+                    if let priceText = pricetextfield.text, let price = Double(priceText) {
+                        let splitAmount = groupMembers.isEmpty ? 0.0 : price / Double(groupMembers.count)
+                        cell.Splitamount.text = String(format: "%.2f", splitAmount)
+                    } else {
+                        cell.Splitamount.text = "0.00"
+                    }
+                }
+            }
+        }
+        mytableview.reloadData()
+    }
+    
+    private func loadExpenses() {
+        expenses = SplitExpenseDataModel.shared.getAllExpenseSplits()
+        mytableview.reloadData()
+    }
+    
+    @objc private func onNewExpenseAdded() {
+        loadExpenses()
     }
     
     func addtransparentView(frames: CGRect) {
@@ -222,45 +242,60 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         addtransparentView(frames: categorybutton.frame)
     }
     
-    var selectedPayer: String?
-    
     // MARK: - TableView DataSource and Delegate Methods
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if tableView.dequeueReusableCell(withIdentifier: "Cell") != nil {
+        if tableView == self.tableview {
             return dataSource.count
-        }
-        if tableView.dequeueReusableCell(withIdentifier: "members") != nil {
+        } else {
             return groupMembers.count
         }
-        return 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if tableView.dequeueReusableCell(withIdentifier: "Cell") != nil {
+        if tableView == self.tableview { // Dropdown table view for category/payer selection
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! Cellclass
             let item = dataSource[indexPath.row]
             cell.textLabel?.text = item.name
             cell.imageView?.image = item.image
             return cell
-        }
-        if tableView.dequeueReusableCell(withIdentifier: "members") != nil {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "members", for: indexPath) as? SplitAmountTableViewCell ?? UITableViewCell(style: .default, reuseIdentifier: "members") as! SplitAmountTableViewCell
+        } else { // Main table view for members and split amounts
+            let cell = tableView.dequeueReusableCell(withIdentifier: "members", for: indexPath) as? SplitAmountTableViewCell ?? SplitAmountTableViewCell(style: .default, reuseIdentifier: "members")
             let memberId = groupMembers[indexPath.row]
             if let user = users.first(where: { $0.id == memberId }) {
                 cell.textLabel?.text = user.fullname
             } else {
                 cell.textLabel?.text = "Unknown Member"
             }
+            
+            // Set initial amount from customSplitAmounts or calculate equal split
+            let isCustomSplit = segmentedcontroller.selectedSegmentIndex == 1
+            cell.Splitamount.isUserInteractionEnabled = isCustomSplit
+            if isCustomSplit {
+                let amount = customSplitAmounts[memberId] ?? 0.0
+                cell.Splitamount.text = String(format: "%.2f", amount)
+            } else {
+                if let priceText = pricetextfield.text, let price = Double(priceText) {
+                    let splitAmount = groupMembers.isEmpty ? 0.0 : price / Double(groupMembers.count)
+                    cell.Splitamount.text = String(format: "%.2f", splitAmount)
+                } else {
+                    cell.Splitamount.text = "0.00"
+                }
+            }
+            
+            // Handle text field changes
+            cell.onAmountChanged = { [weak self] amount in
+                guard let self = self else { return }
+                self.customSplitAmounts[memberId] = amount ?? 0.0
+                print("Updated custom amount for member \(memberId): \(amount ?? 0.0)")
+            }
+            
             return cell
         }
-        let cell = UITableViewCell(style: .default, reuseIdentifier: "DefaultCell")
-        cell.textLabel?.text = "Unknown Identifier"
-        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if tableView.accessibilityIdentifier != "members" {
+        if tableView == self.tableview {
             let selectedItem = dataSource[indexPath.row]
             selectedbutton.setTitle(selectedItem.name, for: .normal)
             if selectedbutton == payerbutton {
@@ -275,6 +310,23 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
         return 50
     }
     
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if textField == pricetextfield {
+            let currentText = textField.text ?? ""
+            guard let stringRange = Range(range, in: currentText) else { return false }
+            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+            
+            // Allow empty string or valid decimal number
+            if updatedText.isEmpty {
+                return true
+            }
+            let regex = "^\\d*\\.?\\d{0,2}$"
+            let predicate = NSPredicate(format: "SELF MATCHES %@", regex)
+            return predicate.evaluate(with: updatedText)
+        }
+        return true
+    }
+    
     @IBAction func cancelbuttontapped(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
@@ -286,26 +338,37 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
               let category = ExpenseCate(rawValue: categoryString),
               let paidByName = selectedPayer,
               let groupId = groupid else {
-            print("Error: Missing data (title, price, category, payer, or group ID)")
+            showAlert(message: "Please fill in all fields: title, price, category, and payer.")
             return
         }
         
         guard let paidByUser = users.first(where: { $0.fullname == paidByName }) else {
-            print("Error: Payer not found in users list")
+            showAlert(message: "Payer not found in group members.")
             return
         }
         
         let paidById = paidByUser.id
         let payees = groupMembers.filter { $0 != paidById }
         
-        var splitAmounts: [String: Double]? = nil
+        var splitAmounts: [String: Double] = [:]
         if segmentedcontroller.selectedSegmentIndex == 0 {
-            let splitAmount = price / Double(groupMembers.count)
-            splitAmounts = Dictionary(uniqueKeysWithValues: groupMembers.map { memberId in
-                ("\(memberId)", splitAmount)
-            })
-        } else if segmentedcontroller.selectedSegmentIndex == 1 {
-            // Implement custom unequal split logic here
+            let splitAmount = groupMembers.isEmpty ? 0.0 : price / Double(groupMembers.count)
+            splitAmounts = Dictionary(uniqueKeysWithValues: groupMembers.map { ("\( $0)", splitAmount) })
+        } else {
+            // Custom split: Validate sum of custom amounts
+            let totalCustomAmount = customSplitAmounts.values.reduce(0, +)
+            if abs(totalCustomAmount - price) > 0.01 { // Allow small floating-point errors
+                showAlert(message: "The sum of custom split amounts (\(String(format: "%.2f", totalCustomAmount))) does not equal the total price (\(String(format: "%.2f", price))).")
+                return
+            }
+            splitAmounts = Dictionary(uniqueKeysWithValues: customSplitAmounts.map { (key, value) in ("\(key)", value) })
+            
+            // Ensure all members have an amount assigned
+            for memberId in groupMembers {
+                if splitAmounts["\(memberId)"] == nil {
+                    splitAmounts["\(memberId)"] = 0.0
+                }
+            }
         }
         
         let currentDate = Date()
@@ -316,35 +379,47 @@ class BillViewController: UIViewController, UITableViewDelegate, UITableViewData
             paidBy: paidByName,
             groupId: groupId,
             image: category.associatedImage,
-            splitOption: .equally,
-            splitAmounts: splitAmounts ?? [:],
+            splitOption: segmentedcontroller.selectedSegmentIndex == 0 ? .equally : .unequally,
+            splitAmounts: splitAmounts,
             payee: payees,
             date: currentDate,
             ismine: true
         )
         
         SplitExpenseDataModel.shared.uploadExpenseSplitToSupabase(newExpense) { result in
-            switch result {
-            case .success():
-                print("Expense uploaded successfully")
-                DispatchQueue.main.async {
-                    self.titletextfield.text = ""
-                    self.pricetextfield.text = ""
-                    self.categorybutton.setTitle("Select Category", for: .normal)
-                    self.payerbutton.setTitle("Select Payer", for: .normal)
+            DispatchQueue.main.async {
+                switch result {
+                case .success():
+                    print("Expense uploaded successfully")
+                    self.clearForm()
                     self.dismiss(animated: true, completion: nil)
+                case .failure(let error):
+                    self.showAlert(message: "Failed to upload expense: \(error.localizedDescription)")
                 }
-            case .failure(let error):
-                print("Failed to upload expense: \(error.localizedDescription)")
             }
         }
         
         SplitExpenseDataModel.shared.addExpenseSplit(expense: newExpense)
         print(newExpense)
+        clearForm()
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    // Helper method to show alerts
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // Helper method to clear form
+    private func clearForm() {
         titletextfield.text = ""
         pricetextfield.text = ""
         categorybutton.setTitle("Select Category", for: .normal)
         payerbutton.setTitle("Select Payer", for: .normal)
-        self.dismiss(animated: true, completion: nil)
+        customSplitAmounts.removeAll()
+        segmentedcontroller.selectedSegmentIndex = 0
+        mytableview.reloadData()
     }
 }

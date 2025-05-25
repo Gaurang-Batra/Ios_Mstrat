@@ -7,7 +7,6 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var loginButton: UIButton!
     @IBOutlet var circleview: [UIView]!
-    
     @IBOutlet weak var eyebutton: UIButton!
     
     override func viewDidLoad() {
@@ -66,6 +65,8 @@ class LoginViewController: UIViewController {
         Task {
             if let guest = await UserDataModel.shared.createGuestUser() {
                 print("🧑‍💻 Guest user created: \(guest.fullname) with ID: \(guest.id ?? -1)")
+                // Save guest userId to UserDefaults
+                UserDefaults.standard.storedUserId = guest.id
                 DispatchQueue.main.async {
                     self.navigateToTabBar(with: guest)
                 }
@@ -104,12 +105,14 @@ class LoginViewController: UIViewController {
                 // Decode the user directly
                 let user = try JSONDecoder().decode(User.self, from: response.data)
 
-                print("✅ Logged in user: \(user.fullname)")
+                print("✅ Logged in user: \(user.fullname) with ID: \(user.id ?? -1)")
+                
+                // Save userId to UserDefaults
+                UserDefaults.standard.storedUserId = user.id
 
                 DispatchQueue.main.async {
                     self.navigateToTabBar(with: user)
                 }
-
             } catch {
                 print("❌ Login failed: \(error)")
                 DispatchQueue.main.async {
@@ -138,16 +141,16 @@ class LoginViewController: UIViewController {
                 switch targetVC {
                 case let homeVC as homeViewController:
                     homeVC.userId = user.id
-                    print("UserId passed to homeViewController at index \(index): \(user.id ?? -1)")
+                    print("✅ UserId passed to homeViewController at index \(index): \(user.id ?? -1)")
                 case let splitVC as SplitpalViewController:
                     splitVC.userId = user.id
-                    print("UserId passed to SplitpalViewController at index \(index): \(user.id ?? -1)")
+                    print("✅ UserId passed to SplitpalViewController at index \(index): \(user.id ?? -1)")
                 case let censusVC as CensusViewController:
                     censusVC.userId = user.id
-                    print("UserId passed to CensusViewController at index \(index): \(user.id ?? -1)")
+                    print("✅ UserId passed to CensusViewController at index \(index): \(user.id ?? -1)")
                 case let profileVC as PersonalInformationViewController:
                     profileVC.userId = user.id
-                    print("UserId passed to PersonalInformationViewController at index \(index): \(user.id ?? -1)")
+                    print("✅ UserId passed to PersonalInformationViewController at index \(index): \(user.id ?? -1)")
                 default:
                     break
                 }

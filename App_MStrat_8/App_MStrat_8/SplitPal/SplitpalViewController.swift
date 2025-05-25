@@ -1,10 +1,3 @@
-//
-//  SplitpalViewController.swift
-//  App_MStrat_8
-//
-//  Created by student-2 on 26/12/24.
-//
-
 import UIKit
 
 class SplitpalViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -17,6 +10,8 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     @IBOutlet weak var WillPaylabel: UILabel!
     @IBOutlet weak var TotalExpenselabel: UILabel!
 
+    @IBOutlet weak var nogroupimage: UIImageView!
+    @IBOutlet weak var nogrouptext: UILabel!
     var selectedGroupIndex: Int?
     var selectedImage: UIImage?
     var userId: Int? {
@@ -104,6 +99,11 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
             self.filteredGroups = groups.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
             print("Loaded \(self.filteredGroups.count) groups for user \(userId): \(self.filteredGroups.map { $0.group_name })")
             DispatchQueue.main.async {
+                // Toggle visibility of nogroupimage, nogrouptext, and tableView based on filteredGroups count
+                let noGroups = self.filteredGroups.isEmpty
+                self.nogroupimage.isHidden = !noGroups
+                self.nogrouptext.isHidden = !noGroups
+                self.tableView.isHidden = noGroups
                 self.tableView.reloadData()
             }
         }

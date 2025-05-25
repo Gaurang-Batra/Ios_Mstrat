@@ -119,8 +119,10 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
         return cell
     }
 
+    
     @IBAction func goToLoginScreenButtonTapped(_ sender: UIButton) {
         Task {
+            // Delete guest user from Supabase if applicable
             if let userId = userId,
                let user = await UserDataModel.shared.getUser(fromSupabaseBy: userId),
                user.is_guest == true {
@@ -135,15 +137,46 @@ class PersonalInformationViewController: UIViewController, UITableViewDelegate, 
                     print("❌ Failed to delete guest user: \(error)")
                 }
             }
-
-            if let loginVC = storyboard?.instantiateViewController(withIdentifier: "Openpage") as? SplashViewController {
-                let navigationController = UINavigationController(rootViewController: loginVC)
-                navigationController.setNavigationBarHidden(true, animated: false)
-                (UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate)?.window?.rootViewController = navigationController
+            
+            // Clear userId from UserDefaults
+            UserDefaults.standard.storedUserId = nil
+            print("✅ Cleared userId from UserDefaults")
+            
+            // Set SplashViewController as root view controller and clear all other view controllers
+            DispatchQueue.main.async {
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let sceneDelegate = windowScene.delegate as? SceneDelegate,
+                      let window = sceneDelegate.window,
+                      let storyboard = self.storyboard else {
+                    print("❌ Failed to access window or storyboard")
+                    return
+                }
+                
+                if let splashVC = storyboard.instantiateViewController(withIdentifier: "Openpage") as? SplashViewController {
+                    // Create a new navigation controller with SplashViewController as root
+                    let navigationController = UINavigationController(rootViewController: splashVC)
+                    navigationController.setNavigationBarHidden(true, animated: false)
+                    
+                    // Set the new navigation controller as the root view controller
+                    window.rootViewController = navigationController
+                    window.makeKeyAndVisible()
+                    
+                    // Clear any presented or pushed view controllers
+                    if let rootVC = window.rootViewController {
+                        rootVC.dismiss(animated: false, completion: nil) // Dismiss any modals
+                        if let navVC = rootVC as? UINavigationController {
+                            navVC.popToRootViewController(animated: false) // Clear navigation stack
+                        }
+                    }
+                    
+                    print("✅ Set SplashViewController as root view controller and cleared background view controllers")
+                } else {
+                    print("❌ Failed to instantiate SplashViewController")
+                }
             }
         }
     }
-
+        
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

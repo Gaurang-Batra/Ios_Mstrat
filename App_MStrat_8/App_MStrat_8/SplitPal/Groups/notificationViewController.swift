@@ -1,10 +1,3 @@
-//
-//  NotificationViewController.swift
-//  App_MStrat_8
-//
-//  Created by student-2 on 08/05/25.
-//
-
 import UIKit
 
 protocol NotificationCellDelegate: AnyObject {
@@ -19,7 +12,8 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             print("NotificationViewController userId set to: \(userId ?? -1)")
         }
     }
-
+    @IBOutlet weak var nonotificationimage: UIImageView!
+    @IBOutlet weak var nonotificationtext: UILabel!
     private var tableView: UITableView!
     private var refreshControl: UIRefreshControl!
 
@@ -27,13 +21,21 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         super.viewDidLoad()
         print("🔔 NotificationViewController loaded with userId: \(userId ?? -1)")
 
-        // Set up navigation bar
         title = "Notifications"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .done,
-            target: self,
-            action: #selector(dismissViewController)
-        )
+        navigationItem.largeTitleDisplayMode = .never
+        
+        // Create custom button with back arrow and "Back" text
+        let backButton = UIButton(type: .system)
+        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        backButton.setTitle("Back", for: .normal)
+        backButton.tintColor = .systemBlue
+        backButton.titleLabel?.font = .systemFont(ofSize: 17)
+        backButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+        backButton.addTarget(self, action: #selector(dismissViewController), for: .touchUpInside)
+        backButton.sizeToFit()
+
+        // Set custom button as left bar button item
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
 
         // Set up the table view
         tableView = UITableView(frame: .zero, style: .plain)
@@ -118,27 +120,15 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             }
 
             DispatchQueue.main.async {
+                // Toggle visibility of nonotificationimage, nonotificationtext, and tableView based on table view data
+                let isTableViewEmpty = self.notifications.isEmpty
+                self.nonotificationimage.isHidden = !isTableViewEmpty
+                self.nonotificationtext.isHidden = !isTableViewEmpty
+                self.tableView.isHidden = isTableViewEmpty
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
-                if self.notifications.isEmpty {
-                    print("🔔 No pending notifications to display")
-                    self.showEmptyStateMessage()
-                }
             }
         }
-    }
-
-    private func showEmptyStateMessage() {
-        let label = UILabel()
-        label.text = "No pending notifications"
-        label.textAlignment = .center
-        label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        tableView.backgroundView = label
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: tableView.centerYAnchor)
-        ])
     }
 
     // MARK: - Table view data source
@@ -148,7 +138,6 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tableView.backgroundView = notifications.isEmpty ? tableView.backgroundView : nil
         return notifications.count
     }
 
@@ -201,6 +190,11 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
                 print("🔔 Successfully accepted notification ID: \(notificationId)")
                 self.notifications.removeAll { $0.id == notificationId }
                 DispatchQueue.main.async {
+                    // Toggle visibility of nonotificationimage, nonotificationtext, and tableView after accepting
+                    let isTableViewEmpty = self.notifications.isEmpty
+                    self.nonotificationimage.isHidden = !isTableViewEmpty
+                    self.nonotificationtext.isHidden = !isTableViewEmpty
+                    self.tableView.isHidden = isTableViewEmpty
                     self.tableView.reloadData()
                     let alert = UIAlertController(
                         title: "Success",

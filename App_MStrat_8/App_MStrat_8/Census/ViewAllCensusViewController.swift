@@ -2,7 +2,9 @@ import UIKit
 
 class ViewAllCensusViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    @IBOutlet weak var tableView: UITableView! // Connect this to your storyboard's table
+    @IBOutlet weak var noitemimage: UIImageView!
+    @IBOutlet weak var nodatalabel: UILabel!
+    @IBOutlet weak var tableView: UITableView!
     var expenses: [Expense] = []
     var groupedExpenses: [[Expense]] = []
     var sectionTitles: [String] = []
@@ -24,8 +26,6 @@ class ViewAllCensusViewController: UIViewController, UITableViewDelegate, UITabl
 
         tableView.estimatedRowHeight = 100
         tableView.rowHeight = UITableView.automaticDimension
-
-        tableView.reloadData()
     }
 
     // MARK: - Table View Delegate Methods
@@ -57,7 +57,7 @@ class ViewAllCensusViewController: UIViewController, UITableViewDelegate, UITabl
         // Configure cell with expense details
         cell.expenseimage.image = expense.image
         cell.pricelabel.text = "Rs \(expense.amount)"
-        cell.categorylabel.text = expense.category.rawValue.trimmingCharacters(in: .whitespacesAndNewlines)  // Display category name
+        cell.categorylabel.text = expense.category.rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         cell.titlelabel.text = expense.item_name
 
         return cell
@@ -72,14 +72,14 @@ class ViewAllCensusViewController: UIViewController, UITableViewDelegate, UITabl
     // MARK: - Grouping and Sorting Expenses by Date
 
     private func groupExpensesByDate() {
-        var groupedByDate: [String: [Expense]] = [:] // Grouped by date
+        var groupedByDate: [String: [Expense]] = [:]
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd" // Format can be adjusted based on requirements
+        dateFormatter.dateFormat = "yyyy-MM-dd"
 
         // Iterate through all expenses and group them by date (duration)
         for expense in expenses {
             // Get the date as a string to use as the key for grouping
-            let dateKey = dateFormatter.string(from: expense.date) // Default to current date if duration is nil
+            let dateKey = dateFormatter.string(from: expense.date)
             
             // If the dateKey doesn't exist, create a new entry in the dictionary
             if groupedByDate[dateKey] == nil {
@@ -91,14 +91,19 @@ class ViewAllCensusViewController: UIViewController, UITableViewDelegate, UITabl
         }
 
         // Flatten the grouped data to be used in the tableView
-        groupedExpenses = groupedByDate.values.map { $0 } // Convert the grouped dictionary into an array of expenses
+        groupedExpenses = groupedByDate.values.map { $0 }
 
         // Create section titles from the date keys and sort them in chronological order
-        sectionTitles = Array(groupedByDate.keys).sorted { $0 < $1 } // Sort the dates chronologically
+        sectionTitles = Array(groupedByDate.keys).sorted { $0 < $1 }
 
         // Debugging: Check grouping
         print("Grouped Expenses: \(groupedExpenses)")
         print("Section Titles: \(sectionTitles)")
+
+        // Toggle visibility of noitemimage and nodatalabel based on expenses count
+        let noExpenses = expenses.isEmpty
+        noitemimage.isHidden = !noExpenses
+        nodatalabel.isHidden = !noExpenses
 
         // Reload the table view to reflect the changes
         tableView.reloadData()

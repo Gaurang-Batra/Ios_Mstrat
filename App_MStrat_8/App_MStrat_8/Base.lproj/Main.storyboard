@@ -73,24 +73,12 @@
                             <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="If3-2M-3CG">
                                 <rect key="frame" x="16" y="351" width="369" height="501"/>
                                 <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CCt-sV-c0S">
-                                        <rect key="frame" x="23" y="91" width="331" height="180"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    </imageView>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHB-3e-MBF">
-                                        <rect key="frame" x="33" y="294" width="302" height="41"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <string key="text">Spliting is fun when travelling in groups.
-Try it!</string>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="singleLineEtched" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="00D-Tm-Clr">
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="singleLineEtched" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" springLoaded="YES" translatesAutoresizingMaskIntoConstraints="NO" id="00D-Tm-Clr">
                                         <rect key="frame" x="-13" y="77" width="394" height="461"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" red="0.85098040100000005" green="0.85098040100000005" blue="0.85098040100000005" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                        <color key="sectionIndexBackgroundColor" red="0.68235301969999995" green="0.68235301969999995" blue="0.68235301969999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <color key="sectionIndexBackgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <color key="sectionIndexTrackingBackgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <prototypes>
                                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="blue" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="SplitCell" rowHeight="75" id="TgK-XQ-hK6" customClass="CreatedgroupTableViewCell" customModule="App_MStrat_8" customModuleProvider="target">
                                                 <rect key="frame" x="20" y="55.333332061767578" width="354" height="75"/>
@@ -108,6 +96,19 @@ Try it!</string>
                                             <outlet property="delegate" destination="BYZ-38-t0r" id="WC4-vQ-hmk"/>
                                         </connections>
                                     </tableView>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="group 1" translatesAutoresizingMaskIntoConstraints="NO" id="CCt-sV-c0S">
+                                        <rect key="frame" x="23" y="86" width="319" height="231"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fHB-3e-MBF">
+                                        <rect key="frame" x="33" y="294" width="302" height="123"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <string key="text">Spliting is fun when travelling in groups.
+Try it!</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Groups" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uzC-97-awF">
                                         <rect key="frame" x="15" y="23" width="85" height="33"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -252,6 +253,8 @@ Try it!</string>
                         <outlet property="WillPaylabel" destination="3Oc-re-pnZ" id="ego-VP-8NN"/>
                         <outlet property="Willgetlabel" destination="mwn-la-bNt" id="GT8-sA-6kw"/>
                         <outlet property="addgroupbutton" destination="kwP-cL-aDY" id="l0o-Tq-Ask"/>
+                        <outlet property="nogroupimage" destination="CCt-sV-c0S" id="4CU-bh-8DM"/>
+                        <outlet property="nogrouptext" destination="fHB-3e-MBF" id="2oq-7Z-OiZ"/>
                         <outlet property="tableView" destination="00D-Tm-Clr" id="OWf-7y-qQ3"/>
                         <outlet property="welcomeimage" destination="CCt-sV-c0S" id="6H9-2b-WWy"/>
                         <segue destination="nrf-Uc-qM6" kind="show" identifier="Groupsdetails" id="raU-OT-Xye"/>
@@ -313,11 +316,26 @@ Try it!</string>
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="nonotification" translatesAutoresizingMaskIntoConstraints="NO" id="TWK-Bd-rQC">
+                                <rect key="frame" x="30" y="312" width="340" height="237"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No Notification" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="CoG-ep-IkO">
+                                <rect key="frame" x="16" y="540" width="361" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="zvM-SA-7nW"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" id="5Ab-b8-8Xk"/>
+                    <connections>
+                        <outlet property="nonotificationimage" destination="TWK-Bd-rQC" id="qsW-0t-Ila"/>
+                        <outlet property="nonotificationtext" destination="CoG-ep-IkO" id="0SP-8W-H3h"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8vn-Rv-f5x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -752,12 +770,25 @@ Try it!</string>
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="undraw_no-data_ig65" id="qGk-Jh-TMl">
+                                <rect key="frame" x="6" y="284" width="380" height="284"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="NO DATA" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qqz-hq-lkA">
+                                <rect key="frame" x="190" y="434" width="97" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="7W7-XN-Ozk"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
                     <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="tbk-9b-RoG"/>
                     <connections>
+                        <outlet property="nodatalabel" destination="Qqz-hq-lkA" id="8Dw-e3-L1B"/>
+                        <outlet property="noitemimage" destination="qGk-Jh-TMl" id="5KV-cm-9g3"/>
                         <outlet property="tableView" destination="GRE-OF-VLc" id="W6m-0m-EYb"/>
                     </connections>
                 </viewController>
@@ -849,12 +880,8 @@ Try it!</string>
                                                         <nil key="textColor"/>
                                                         <nil key="highlightedColor"/>
                                                     </label>
-                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Group" translatesAutoresizingMaskIntoConstraints="NO" id="bgK-OH-257">
-                                                        <rect key="frame" x="42" y="51" width="287" height="141"/>
-                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    </imageView>
                                                     <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="mve-cc-Y4u">
-                                                        <rect key="frame" x="0.0" y="83" width="363" height="209"/>
+                                                        <rect key="frame" x="0.0" y="83" width="341" height="203"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         <color key="backgroundColor" red="0.77647060160000003" green="0.77647060160000003" blue="0.77647060160000003" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                         <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="skh-RS-JDM">
@@ -924,19 +951,25 @@ Try it!</string>
                                                             <segue destination="34L-cn-L1u" kind="presentation" identifier="AddExpenseScreen" id="xEa-hg-7Iy"/>
                                                         </connections>
                                                     </button>
+                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="money" id="0bE-Ti-BFv">
+                                                        <rect key="frame" x="11" y="52" width="341" height="203"/>
+                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    </imageView>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="No Expense added" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1gR-qt-f6R">
+                                                        <rect key="frame" x="77" y="259" width="195" height="37"/>
+                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="23"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
                                                 </subviews>
                                                 <color key="backgroundColor" red="0.77647060160000003" green="0.77647060160000003" blue="0.77647060160000003" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                                <variation key="default">
-                                                    <mask key="subviews">
-                                                        <exclude reference="bgK-OH-257"/>
-                                                    </mask>
-                                                </variation>
                                             </view>
                                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O0H-mZ-3vG">
                                                 <rect key="frame" x="15" y="729" width="363" height="209"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <subviews>
-                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Group" translatesAutoresizingMaskIntoConstraints="NO" id="yxO-SP-keh">
+                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="badges" translatesAutoresizingMaskIntoConstraints="NO" id="yxO-SP-keh">
                                                         <rect key="frame" x="33" y="48" width="287" height="141"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     </imageView>
@@ -1096,6 +1129,9 @@ Try it!</string>
                         <outlet property="expensebutton" destination="qjO-jj-e29" id="03U-tA-HUf"/>
                         <outlet property="lineDotted" destination="Hha-Ap-m4j" id="p0D-rn-Xne"/>
                         <outlet property="mainlabel" destination="TVD-xy-qy6" id="JSZ-3e-4KJ"/>
+                        <outlet property="noExpenseImage" destination="0bE-Ti-BFv" id="lgq-uV-AsY"/>
+                        <outlet property="nobadgesimage" destination="yxO-SP-keh" id="gCb-OM-Vkb"/>
+                        <outlet property="noexpenseaddedlabel" destination="1gR-qt-f6R" id="e7c-Te-FXa"/>
                         <outlet property="remaininfAllowancelabel" destination="aWK-LA-NW6" id="oFg-qq-1bs"/>
                         <outlet property="savedAmountLabel" destination="Zwl-EV-eLI" id="Kvb-Ue-S8h"/>
                         <outlet property="totalexpenselabel" destination="2md-jb-rpz" id="qIJ-5O-Chx"/>
@@ -1278,7 +1314,7 @@ Try it!</string>
             </objects>
             <point key="canvasLocation" x="3063" y="2932"/>
         </scene>
-        <!--Sign In & Security-->
+        <!--Reset Password-->
         <scene sceneID="Ddp-BY-mRj">
             <objects>
                 <viewController storyboardIdentifier="changepasswordVC" id="QaU-ev-kmc" customClass="SignInSecurityViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
@@ -1365,7 +1401,7 @@ Try it!</string>
                         <viewLayoutGuide key="safeArea" id="DP2-jX-7rq"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Sign In &amp; Security" largeTitleDisplayMode="never" id="SyO-Wa-Jzf"/>
+                    <navigationItem key="navigationItem" title="Reset Password" largeTitleDisplayMode="never" id="SyO-Wa-Jzf"/>
                     <connections>
                         <outlet property="eyeButton1" destination="SmD-VD-SIW" id="btB-Qe-Pbr"/>
                         <outlet property="eyeButton2" destination="FP1-cJ-P29" id="Sbx-AW-vEF"/>
@@ -1388,34 +1424,34 @@ Try it!</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Current password " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Lxv-d4-x0f">
-                                <rect key="frame" x="16" y="185" width="140" height="21"/>
+                                <rect key="frame" x="16" y="162" width="140" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="GUi-I6-IHh">
-                                <rect key="frame" x="23" y="216" width="361" height="34"/>
+                                <rect key="frame" x="16" y="191" width="361" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LWB-1n-iLC">
-                                <rect key="frame" x="319" y="201" width="74" height="64"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" image="icons8-blind-50"/>
-                                <connections>
-                                    <action selector="togglePasswordVisibility:" destination="RaZ-Sh-1Bq" eventType="touchUpInside" id="NSQ-bU-3UF"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tsR-kK-yVK">
-                                <rect key="frame" x="89" y="274" width="214" height="35"/>
+                                <rect key="frame" x="89" y="275" width="214" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Delete Account"/>
                                 <connections>
                                     <action selector="deleteUserButtonTapped:" destination="RaZ-Sh-1Bq" eventType="touchUpInside" id="3Be-Jr-Fu1"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LWB-1n-iLC">
+                                <rect key="frame" x="319" y="176" width="74" height="64"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="icons8-blind-50"/>
+                                <connections>
+                                    <action selector="togglePasswordVisibility:" destination="RaZ-Sh-1Bq" eventType="touchUpInside" id="NSQ-bU-3UF"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -2025,8 +2061,8 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                                 <rect key="frame" x="16" y="624" width="361" height="49"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Enter the deadline" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ovh-pt-193">
-                                        <rect key="frame" x="18" y="14" width="135" height="21"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Add deadline" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ovh-pt-193">
+                                        <rect key="frame" x="18" y="14" width="227" height="21"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" weight="thin" pointSize="17"/>
                                         <nil key="textColor"/>
@@ -2162,7 +2198,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                                     <color key="baseBackgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <segue destination="olV-qE-FMW" kind="show" id="mQL-G4-jZb"/>
+                                    <segue destination="olV-qE-FMW" kind="show" id="DCR-Aw-acL"/>
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vD2-0v-rNL">
@@ -2275,14 +2311,14 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="so2-5f-eie" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-4935.1145038167933" y="1013.3802816901409"/>
+            <point key="canvasLocation" x="-5053" y="1039"/>
         </scene>
         <!--Forgot Password View Controller-->
         <scene sceneID="a0E-Bg-nOA">
             <objects>
                 <viewController id="Sgv-CM-Ofn" customClass="ForgotPasswordViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BV8-gR-hpM">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Your Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="KLi-R9-rcc">
@@ -2616,7 +2652,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController storyboardIdentifier="LoginViewController" id="olV-qE-FMW" customClass="LoginViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="M3Q-SX-6fN">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="7dn-l5-MDt">
@@ -2835,7 +2871,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController id="uup-HX-cZq" customClass="SignUpViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="g5C-Jh-WPX">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tze-9L-UkC">
@@ -3042,7 +3078,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController storyboardIdentifier="verifycode" id="OmZ-FX-Eic" customClass="VerifyotpViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="9VB-VW-BgL">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter otp" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="SX7-lS-bu2">
@@ -3191,7 +3227,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         <!--Navigation Controller-->
         <scene sceneID="1qy-tP-5UM">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="myV-Lb-yML" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="startingpagevc" automaticallyAdjustsScrollViewInsets="NO" id="myV-Lb-yML" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="Gof-NS-jOF">
                         <rect key="frame" x="0.0" y="118" width="393" height="44"/>
@@ -3242,7 +3278,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yfU-oG-zDz" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-4219" y="1040"/>
+            <point key="canvasLocation" x="-4227" y="1073"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="k4b-7Y-7vN">
@@ -3262,7 +3298,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             </objects>
             <point key="canvasLocation" x="2137" y="2932"/>
         </scene>
-        <!--Signin security Table View Controller-->
+        <!--Sign In & Security-->
         <scene sceneID="UXu-p6-iNS">
             <objects>
                 <tableViewController storyboardIdentifier="SIgnin&amp;security" id="QFv-bS-t7v" customClass="Signin_securityTableViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
@@ -3301,7 +3337,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                             <outlet property="delegate" destination="QFv-bS-t7v" id="oDa-4X-MqP"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="aed-nT-Mcl"/>
+                    <navigationItem key="navigationItem" title="Sign In &amp; Security" largeTitleDisplayMode="never" id="aed-nT-Mcl"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0PL-nK-cDr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -3382,7 +3418,6 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         <!--Navigation Controller-->
         <scene sceneID="5RZ-ub-8dY">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="XV3-rm-OUx" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="udx-PS-jIu" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="fG7-3l-Whm">
@@ -3394,6 +3429,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                         <segue destination="RaZ-Sh-1Bq" kind="relationship" relationship="rootViewController" id="hAS-AJ-zxD"/>
                     </connections>
                 </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="XV3-rm-OUx" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="4372" y="4290"/>
         </scene>
@@ -3417,17 +3453,18 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="slq-dV-Nfy"/>
+        <segue reference="DCR-Aw-acL"/>
         <segue reference="axb-SC-zZr"/>
         <segue reference="HMP-H4-Ezh"/>
         <segue reference="5Pz-bk-SPw"/>
     </inferredMetricsTieBreakers>
     <resources>
-        <image name="Group" width="766.80194091796875" height="500.94793701171875"/>
         <image name="Split1" width="16.666666030883789" height="16.666666030883789"/>
         <image name="Splitfill" width="25" height="25"/>
+        <image name="badges" width="586.989501953125" height="707"/>
         <image name="bell" catalog="system" width="125" height="128"/>
         <image name="fruits" width="21.333333969116211" height="21.333333969116211"/>
+        <image name="group 1" width="809.34185791015625" height="629.8756103515625"/>
         <image name="house" catalog="system" width="128" height="104"/>
         <image name="house.fill" catalog="system" width="128" height="104"/>
         <image name="icons8-arrow-50" width="50" height="50"/>
@@ -3448,8 +3485,11 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         <image name="icons8-password-64" width="64" height="64"/>
         <image name="icons8-vegetarian-food-50" width="25" height="25"/>
         <image name="icons8-wallet-100" width="33.333332061767578" height="33.333332061767578"/>
+        <image name="money" width="567.17041015625" height="517.3096923828125"/>
+        <image name="nonotification" width="790" height="512.20806884765625"/>
         <image name="person.crop.circle" catalog="system" width="128" height="123"/>
         <image name="person.crop.circle.fill" catalog="system" width="128" height="123"/>
+        <image name="undraw_no-data_ig65" width="647.63623046875" height="632.173828125"/>
         <systemColor name="darkTextColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
