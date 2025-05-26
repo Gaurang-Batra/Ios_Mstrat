@@ -8,7 +8,7 @@ extension Notification.Name {
 }
 
 struct ExpenseSplitForm: Codable {
-    var id: Int? // Added id field for sorting
+    var id: Int?
     var name: String
     var category: String
     var totalAmount: Double
@@ -122,6 +122,7 @@ class SplitExpenseDataModel {
     static let shared = SplitExpenseDataModel()
 
     private init() {
+        // Updated sample data to use user IDs as keys
         let firstExpenseSplit = ExpenseSplitForm(
             id: 1,
             name: "Dinner with Friends",
@@ -131,8 +132,8 @@ class SplitExpenseDataModel {
             groupId: 1,
             image: UIImage(named: "icons8-holiday-50"),
             splitOption: .equally,
-            splitAmounts: ["John Doe": 200.0, "Alice Johnson": 300.0],
-            payee: [1],
+            splitAmounts: ["1": 50.0, "2": 50.0],
+            payee: [1, 2],
             date: Date(),
             ismine: true
         )
@@ -146,8 +147,8 @@ class SplitExpenseDataModel {
             groupId: 2,
             image: UIImage(named: "icons8-holiday-50"),
             splitOption: .unequally,
-            splitAmounts: ["John Doe": 200.0, "Alice Johnson": 300.0],
-            payee: [2],
+            splitAmounts: ["1": 200.0, "2": 300.0],
+            payee: [1, 2],
             date: Date(),
             ismine: false
         )
@@ -157,181 +158,162 @@ class SplitExpenseDataModel {
     }
 
     func getAllExpenseSplits() -> [ExpenseSplitForm] {
-        return self.expenseSplits
+        return expenseSplits
     }
 
+    func getExpenseSplits(forGroup groupId: Int) async -> [ExpenseSplitForm] {
+        do {
+            let expenses = try await fetchExpenseSplits(forGroup: groupId)
+            return expenses
+        } catch {
+            print("❌ Failed to fetch expenses: \(error.localizedDescription)")
+            return expenseSplits.filter { $0.groupId == groupId } // Fallback to local cache
+        }
+    }
+
+    // Keep the completion-based version for backward compatibility
     func getExpenseSplits(forGroup groupId: Int, completion: @escaping ([ExpenseSplitForm]) -> Void) {
-        fetchExpenseSplits(forGroup: groupId) { result in
-            switch result {
-            case .success(let expenses):
+        Task {
+            let expenses = await getExpenseSplits(forGroup: groupId)
+            DispatchQueue.main.async {
                 completion(expenses)
-            case .failure(let error):
-                print("❌ Failed to fetch expenses: \(error.localizedDescription)")
-                completion(self.expenseSplits.filter { $0.groupId == groupId }) // Fallback to local cache
             }
         }
     }
 
-    func fetchExpenseSplits(forGroup groupId: Int, completion: @escaping (Result<[ExpenseSplitForm], Error>) -> Void) {
+    func fetchExpenseSplits(forGroup groupId: Int) async throws -> [ExpenseSplitForm] {
         let client = SupabaseAPIClient.shared.supabaseClient
         print("📥 Fetching expenses for group ID: \(groupId)...")
 
-        Task {
+        let response: PostgrestResponse = try await client
+            .from("splitexpenses")
+            .select()
+            .eq("group_id", value: groupId)
+            .order("id", ascending: false)
+            .execute()
+
+        print("✅ Response received from splitexpenses table.")
+        print("📦 Raw response data: \(response.data)")
+
+        var dataArray: [[String: Any]] = []
+        if let array = response.data as? [[String: Any]] {
+            dataArray = array
+        } else if let singleDict = response.data as? [String: Any] {
+            dataArray = [singleDict]
+        } else if let rawData = response.data as? Data {
             do {
-                // Query the splitexpenses table for the given group_id, sorted by id descending
-                let response: PostgrestResponse = try await client
-                    .from("splitexpenses")
-                    .select()
-                    .eq("group_id", value: groupId)
-                    .order("id", ascending: false) // Sort by id descending
-                    .execute()
-
-                print("✅ Response received from splitexpenses table.")
-                print("📦 Raw response data: \(response.data)")
-
-                // Handle different response data types
-                var dataArray: [[String: Any]] = []
-                if let array = response.data as? [[String: Any]] {
+                let jsonObject = try JSONSerialization.jsonObject(with: rawData, options: [])
+                if let array = jsonObject as? [[String: Any]] {
                     dataArray = array
-                } else if let singleDict = response.data as? [String: Any] {
+                } else if let singleDict = jsonObject as? [String: Any] {
                     dataArray = [singleDict]
-                } else if let rawData = response.data as? Data {
-                    // Attempt to deserialize JSON data
-                    do {
-                        let jsonObject = try JSONSerialization.jsonObject(with: rawData, options: [])
-                        if let array = jsonObject as? [[String: Any]] {
-                            dataArray = array
-                        } else if let singleDict = jsonObject as? [String: Any] {
-                            dataArray = [singleDict]
-                        } else {
-                            throw NSError(domain: "SupabaseError", code: 2,
-                                          userInfo: [NSLocalizedDescriptionKey: "❌ Response data is not a valid JSON array or object"])
-                        }
-                    } catch {
-                        throw NSError(domain: "SupabaseError", code: 2,
-                                      userInfo: [NSLocalizedDescriptionKey: "❌ Failed to deserialize response data: \(error.localizedDescription)"])
-                    }
                 } else {
-                    // Handle empty or unexpected response
-                    if (response.data as? [Any])?.isEmpty ?? true {
-                        print("ℹ️ No expenses found for group ID: \(groupId). Returning empty array.")
-                        DispatchQueue.main.async {
-                            self.expenseSplits = []
-                            completion(.success([]))
-                        }
-                        return
-                    } else {
-                        throw NSError(domain: "SupabaseError", code: 2,
-                                      userInfo: [NSLocalizedDescriptionKey: "❌ Response data is in an unexpected format: \(type(of: response.data))"])
-                    }
+                    throw NSError(domain: "SupabaseError", code: 2,
+                                  userInfo: [NSLocalizedDescriptionKey: "❌ Response data is not a valid JSON array or object"])
+                }
+            } catch {
+                throw NSError(domain: "SupabaseError", code: 2,
+                              userInfo: [NSLocalizedDescriptionKey: "❌ Failed to deserialize response data: \(error.localizedDescription)"])
+            }
+        } else {
+            if (response.data as? [Any])?.isEmpty ?? true {
+                print("ℹ️ No expenses found for group ID: \(groupId). Returning empty array.")
+                expenseSplits = []
+                return []
+            } else {
+                throw NSError(domain: "SupabaseError", code: 2,
+                              userInfo: [NSLocalizedDescriptionKey: "❌ Response data is in an unexpected format: \(type(of: response.data))"])
+            }
+        }
+
+        var fetchedExpenses: [ExpenseSplitForm] = []
+
+        for json in dataArray {
+            do {
+                guard let id = json["id"] as? Int,
+                      let name = json["name"] as? String,
+                      let category = json["category"] as? String,
+                      let totalAmountRaw = json["total_amount"],
+                      let paidBy = json["paid_by"] as? String,
+                      let payee = json["payee"] as? [Int],
+                      let dateString = json["date"] as? String,
+                      let ismine = json["ismine"] as? Bool,
+                      let splitAmountsJson = json["split_amounts"] as? [String: Any] else {
+                    print("⚠️ Missing or invalid required fields in expense: \(json)")
+                    continue
                 }
 
-                var fetchedExpenses: [ExpenseSplitForm] = []
+                let totalAmount: Double
+                if let doubleValue = totalAmountRaw as? Double {
+                    totalAmount = doubleValue
+                } else if let intValue = totalAmountRaw as? Int {
+                    totalAmount = Double(intValue)
+                } else if let numberValue = totalAmountRaw as? NSNumber {
+                    totalAmount = Double(truncating: numberValue)
+                } else if let stringValue = totalAmountRaw as? String, let doubleFromString = Double(stringValue) {
+                    totalAmount = doubleFromString
+                } else {
+                    print("⚠️ Invalid total_amount format: \(totalAmountRaw)")
+                    continue
+                }
 
-                for json in dataArray {
-                    do {
-                        // Parse required fields
-                        guard let id = json["id"] as? Int, // Added id parsing
-                              let name = json["name"] as? String,
-                              let category = json["category"] as? String,
-                              let totalAmountRaw = json["total_amount"],
-                              let paidBy = json["paid_by"] as? String,
-                              let payee = json["payee"] as? [Int],
-                              let dateString = json["date"] as? String,
-                              let ismine = json["ismine"] as? Bool,
-                              let splitAmountsJson = json["split_amounts"] as? [String: Any] else {
-                            print("⚠️ Missing or invalid required fields in expense: \(json)")
-                            continue
-                        }
+                let dateFormatter = ISO8601DateFormatter()
+                guard let date = dateFormatter.date(from: dateString) else {
+                    print("⚠️ Invalid date format: \(dateString)")
+                    continue
+                }
 
-                        // Parse total_amount with flexible type handling
-                        let totalAmount: Double
-                        if let doubleValue = totalAmountRaw as? Double {
-                            totalAmount = doubleValue
-                        } else if let intValue = totalAmountRaw as? Int {
-                            totalAmount = Double(intValue)
-                        } else if let numberValue = totalAmountRaw as? NSNumber {
-                            totalAmount = Double(truncating: numberValue)
-                        } else if let stringValue = totalAmountRaw as? String, let doubleFromString = Double(stringValue) {
-                            totalAmount = doubleFromString
-                        } else {
-                            print("⚠️ Invalid total_amount format: \(totalAmountRaw)")
-                            continue
-                        }
+                var splitOption: SplitOption?
+                if let splitOptionString = json["split_option"] as? String {
+                    splitOption = SplitOption(rawValue: splitOptionString)
+                }
 
-                        // Parse date
-                        let dateFormatter = ISO8601DateFormatter()
-                        guard let date = dateFormatter.date(from: dateString) else {
-                            print("⚠️ Invalid date format: \(dateString)")
-                            continue
-                        }
-
-                        // Parse split_option (optional)
-                        var splitOption: SplitOption?
-                        if let splitOptionString = json["split_option"] as? String {
-                            splitOption = SplitOption(rawValue: splitOptionString)
-                        }
-
-                        // Parse split_amounts
-                        var splitAmounts: [String: Double] = [:]
-                        for (key, value) in splitAmountsJson {
-                            if let amount = value as? Double {
-                                splitAmounts[key] = amount
-                            } else if let amountInt = value as? Int {
-                                splitAmounts[key] = Double(amountInt)
-                            } else if let amountString = value as? String, let amountDouble = Double(amountString) {
-                                splitAmounts[key] = amountDouble
-                            } else {
-                                print("⚠️ Invalid split_amounts value for key \(key): \(value)")
-                                continue
-                            }
-                        }
-
-                        // Parse image (optional)
-                        var image: UIImage?
-                        if let base64Image = json["image"] as? String,
-                           let imageData = Data(base64Encoded: base64Image) {
-                            image = UIImage(data: imageData)
-                        }
-
-                        // Create ExpenseSplitForm
-                        let expense = ExpenseSplitForm(
-                            id: id,
-                            name: name,
-                            category: category,
-                            totalAmount: totalAmount,
-                            paidBy: paidBy,
-                            groupId: groupId,
-                            image: image,
-                            splitOption: splitOption,
-                            splitAmounts: splitAmounts,
-                            payee: payee,
-                            date: date,
-                            ismine: ismine
-                        )
-
-                        fetchedExpenses.append(expense)
-                        print("✅ Parsed expense: \(name) (ID: \(id))")
-                    } catch {
-                        print("⚠️ Error parsing expense: \(error.localizedDescription)")
+                var splitAmounts: [String: Double] = [:]
+                for (key, value) in splitAmountsJson {
+                    if let amount = value as? Double {
+                        splitAmounts[key] = amount
+                    } else if let amountInt = value as? Int {
+                        splitAmounts[key] = Double(amountInt)
+                    } else if let amountString = value as? String, let amountDouble = Double(amountString) {
+                        splitAmounts[key] = amountDouble
+                    } else {
+                        print("⚠️ Invalid split_amounts value for key \(key): \(value)")
                         continue
                     }
                 }
 
-                // Update local cache and return fetched expenses
-                DispatchQueue.main.async {
-                    self.expenseSplits = fetchedExpenses
-                    print("✅ Fetched \(fetchedExpenses.count) expenses for group \(groupId).")
-                    completion(.success(fetchedExpenses))
+                var image: UIImage?
+                if let base64Image = json["image"] as? String,
+                   let imageData = Data(base64Encoded: base64Image) {
+                    image = UIImage(data: imageData)
                 }
 
+                let expense = ExpenseSplitForm(
+                    id: id,
+                    name: name,
+                    category: category,
+                    totalAmount: totalAmount,
+                    paidBy: paidBy,
+                    groupId: groupId,
+                    image: image,
+                    splitOption: splitOption,
+                    splitAmounts: splitAmounts,
+                    payee: payee,
+                    date: date,
+                    ismine: ismine
+                )
+
+                fetchedExpenses.append(expense)
+                print("✅ Parsed expense: \(name) (ID: \(id))")
             } catch {
-                print("❌ Error fetching expenses: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+                print("⚠️ Error parsing expense: \(error.localizedDescription)")
+                continue
             }
         }
+
+        expenseSplits = fetchedExpenses
+        print("✅ Fetched \(fetchedExpenses.count) expenses for group \(groupId).")
+        return fetchedExpenses
     }
 
     func addExpenseSplit(expense: ExpenseSplitForm) {
@@ -350,7 +332,7 @@ class SplitExpenseDataModel {
             expenseSplits.remove(at: index)
         }
     }
-    
+
     func uploadExpenseSplitToSupabase(_ expense: ExpenseSplitForm, completion: @escaping (Result<Void, Error>) -> Void) {
         let client = SupabaseAPIClient.shared.supabaseClient
 
@@ -485,7 +467,7 @@ class SplitExpenseDataModel {
                 DispatchQueue.main.async {
                     print("📦 Finalizing: Expense added locally.")
                     var updatedExpense = expense
-                    updatedExpense.id = expenseId // Set the id from Supabase
+                    updatedExpense.id = expenseId
                     self.addExpenseSplit(expense: updatedExpense)
                     print("✅ Upload completed successfully.")
                     completion(.success(()))

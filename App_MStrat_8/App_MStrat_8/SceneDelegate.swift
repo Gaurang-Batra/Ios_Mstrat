@@ -93,4 +93,17 @@ extension UserDefaults {
             synchronize()
         }
     }
+    // In AppDelegate.swift or SceneDelegate.swift
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UserDataModel.shared.getAllUsersfromsupabase { users, error in
+            if let error = error {
+                print("❌ Failed to initialize user cache: \(error)")
+            } else {
+                print("✅ User cache initialized with \(users?.count ?? 0) users")
+            }
+        }
+        return true
+    }
+
 }
+

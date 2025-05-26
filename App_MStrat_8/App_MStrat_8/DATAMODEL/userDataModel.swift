@@ -22,16 +22,19 @@ struct User: Codable {
 
 class UserDataModel {
     private var users: [User] = []
+     var userCache: [Int: User] = [:] // Cache by user ID
     private var pendingUsers: [String: User] = [:] // Temporary storage for unverified users
     static let shared = UserDataModel()
     private var passwordResetOTPs: [String: String] = [:]
     
-    private init() {}
+    private init() {
+        
+    }
     
     private let client = SupabaseAPIClient.shared.supabaseClient
     
     func getAllUsers() -> [User] {
-        return self.users
+        return Array(userCache.values)
     }
     
     func getAllUsersfromsupabase(completion: @escaping ([User]?, Error?) -> Void) {
@@ -45,6 +48,13 @@ class UserDataModel {
                 let response: PostgrestResponse<[User]> = try await query.execute()
                 let users = response.value
 
+                // Update cache
+                for user in users {
+                    if let userId = user.id {
+                        self.userCache[userId] = user
+                    }
+                }
+
                 if users.isEmpty {
                     print("⚠️ No users found.")
                 } else {
@@ -52,35 +62,32 @@ class UserDataModel {
                 }
 
                 completion(users, nil)
-
             } catch {
                 print("❌ Error fetching users: \(error)")
                 if let decodingError = error as? DecodingError {
                     switch decodingError {
-                        case .typeMismatch(let type, let context):
-                            print("Type mismatch for \(type): \(context.debugDescription)")
-                            print("Coding path: \(context.codingPath)")
-                        case .valueNotFound(let type, let context):
-                            print("Value not found for \(type): \(context.debugDescription)")
-                        case .keyNotFound(let key, let context):
-                            print("Key not found: \(key), \(context.debugDescription)")
-                        case .dataCorrupted(let context):
-                            print("Data corrupted: \(context.debugDescription)")
-                        @unknown default:
-                            print("Unknown decoding error: \(error)")
+                    case .typeMismatch(let type, let context):
+                        print("Type mismatch for \(type): \(context.debugDescription)")
+                        print("Coding path: \(context.codingPath)")
+                    case .valueNotFound(let type, let context):
+                        print("Value not found for \(type): \(context.debugDescription)")
+                    case .keyNotFound(let key, let context):
+                        print("Key not found: \(key), \(context.debugDescription)")
+                    case .dataCorrupted(let context):
+                        print("Data corrupted: \(context.debugDescription)")
+                    @unknown default:
+                        print("Unknown decoding error: \(error)")
                     }
                 }
                 completion(nil, error)
             }
         }
     }
-
-
-
     
     func getUser(by id: Int) -> User? {
-        return users.first { $0.id == id }
+        return userCache[id]
     }
+    
     func getUserByEmail(_ email: String) async -> User? {
         do {
             let response: [User] = try await client
@@ -90,59 +97,76 @@ class UserDataModel {
                 .eq("email", value: email)
                 .execute()
                 .value
+            if let user = response.first, let userId = user.id {
+                userCache[userId] = user // Cache the user
+            }
             return response.first
         } catch {
             print("❌ Error fetching user by email: \(error)")
             return nil
         }
     }
+    
     func getUser(fromSupabaseBy id: Int) async -> User? {
-        let client = SupabaseAPIClient.shared.supabaseClient
+        // Check cache first
+        if let cachedUser = userCache[id] {
+            print("✅ Found user ID \(id) in cache: \(cachedUser.fullname)")
+            return cachedUser
+        }
+
         do {
             let response: PostgrestResponse<User> = try await client
-                .database
-                .from("users")
+                .from("users") // ✅ Use SupabaseClient.from(_:) directly
                 .select()
                 .eq("id", value: id)
                 .single()
                 .execute()
+            
             let user = response.value
-            print("✅ Fetched user: \(user.fullname)")
+            if let userId = user.id {
+                userCache[userId] = user // Cache the user
+                print("✅ Fetched and cached user: \(user.fullname)")
+            }
             return user
         } catch {
-            print("❌ Error fetching user from Supabase: \(error)")
+            print("❌ Error fetching user ID \(id) from Supabase: \(error)")
             return nil
         }
     }
+   
     
     func assignGoal(to userId: Int, goal: Goal) {
-        guard let index = users.firstIndex(where: { $0.id == userId }) else { return }
-        users[index].currentGoal = goal
+        if let user = userCache[userId] {
+            var updatedUser = user
+            updatedUser.currentGoal = goal
+            userCache[userId] = updatedUser
+        }
     }
+    
     func deleteUser(userId: Int, completion: @escaping (Result<Void, Error>) -> Void) {
-            Task {
-                do {
-                    try await client
-                        .database
-                        .from("users")
-                        .delete()
-                        .eq("id", value: userId)
-                        .execute()
-                    // Update local cache
-                    users.removeAll { $0.id == userId }
-//                    pendingUsers.removeAll { $0.value.id == userId }
-                    print("🗑️ User \(userId) deleted successfully.")
-                    DispatchQueue.main.async {
-                        completion(.success(()))
-                    }
-                } catch {
-                    print("❌ Error deleting user: \(error)")
-                    DispatchQueue.main.async {
-                        completion(.failure(error))
-                    }
+        Task {
+            do {
+                try await client
+                    .database
+                    .from("users")
+                    .delete()
+                    .eq("id", value: userId)
+                    .execute()
+                // Update local cache
+                userCache.removeValue(forKey: userId)
+                // pendingUsers.removeAll { $0.value.id == userId }
+                print("🗑️ User \(userId) deleted successfully.")
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            } catch {
+                print("❌ Error deleting user: \(error)")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
                 }
             }
         }
+    }
     
     func deleteGuestUser(user: User) {
         guard user.is_guest == true, let id = user.id else { return }
@@ -154,7 +178,7 @@ class UserDataModel {
                     .delete()
                     .eq("id", value: id)
                     .execute()
-                users.removeAll { $0.id == id }
+                userCache.removeValue(forKey: id)
                 print("🗑️ Guest user deleted.")
             } catch {
                 print("❌ Error deleting guest user: \(error)")
@@ -173,7 +197,6 @@ class UserDataModel {
             password: "guest_pass_\(uuid)",
             is_verified: false,
             verification_code: nil,
-
             is_guest: true
         )
         
@@ -192,8 +215,8 @@ class UserDataModel {
                 return nil
             }
             
+            userCache[userId] = insertedUser // Cache the user
             print("✅ Guest user inserted with ID: \(userId)")
-            users.append(insertedUser)
             return insertedUser
         } catch {
             print("❌ Failed to insert guest user: \(error)")
@@ -235,8 +258,7 @@ class UserDataModel {
         }
         return storedOTP == otp
     }
-
-    // Clear OTP after use
+    
     func clearResetOTP(email: String) {
         passwordResetOTPs.removeValue(forKey: email)
     }
@@ -262,7 +284,6 @@ class UserDataModel {
         
         Task {
             do {
-                // Insert user into Supabase and retrieve the inserted user with ID
                 let response: PostgrestResponse<User> = try await client
                     .database
                     .from("users")
@@ -271,17 +292,17 @@ class UserDataModel {
                     .single()
                     .execute()
                 
-                // Since .single() ensures one result, response.value is non-optional
                 let confirmedUser = response.value
                 print("✅ Inserted user into Supabase with ID: \(confirmedUser.id ?? -1)")
                 
-                // Verify that the user has a valid ID
                 guard confirmedUser.id != nil else {
                     throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Inserted user has no ID"])
                 }
                 
-                users.append(confirmedUser)
-                pendingUsers.removeValue(forKey: email) // Clear from pending
+                if let userId = confirmedUser.id {
+                    userCache[userId] = confirmedUser // Cache the user
+                }
+                pendingUsers.removeValue(forKey: email)
                 completion(.success(confirmedUser))
             } catch {
                 print("❌ Supabase insert failed: \(error)")
@@ -301,12 +322,18 @@ class UserDataModel {
                 .value
             let emailExists = response.contains { $0.email.lowercased() == email.lowercased() }
             let fullnameExists = response.contains { $0.fullname.lowercased() == fullname.lowercased() }
+            for user in response {
+                if let userId = user.id {
+                    userCache[userId] = user // Cache users
+                }
+            }
             return (emailExists, fullnameExists)
         } catch {
             print("❌ Error checking user existence: \(error)")
             return (false, false)
         }
     }
+    
     func generateAndStoreOTP(for email: String) -> String {
         let otp = String(format: "%04d", Int.random(in: 0...9999))
         passwordResetOTPs[email] = otp
@@ -325,6 +352,7 @@ class UserDataModel {
             }
         }
     }
+
     private func sendVerificationEmail(to email: String, code: String, completion: @escaping (Bool, String) -> Void) {
         let smtp = SMTP(
             hostname: "smtp.gmail.com",
@@ -343,7 +371,7 @@ class UserDataModel {
             subject: "Verification Code",
             text: """
             Hello!
-            Welcome to Mstart.
+            Welcome to Mstrat.
             Your verification code is: \(code).
             Please enter this code to verify your account.
             Best Regards,

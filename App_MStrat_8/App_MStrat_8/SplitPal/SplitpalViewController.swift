@@ -52,6 +52,11 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadUserGroups()
+        updateBalanceLabels()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     @objc func reloadTableView() {
@@ -62,29 +67,61 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     func updateBalanceLabels() {
         guard let userId = self.userId else {
             print("User ID is nil, cannot calculate balances")
+            Willgetlabel.text = "₹0"
+            WillPaylabel.text = "₹0"
+            TotalExpenselabel.text = "₹0"
             return
         }
 
-        var totalWillGet: Double = 0.0
-        var totalWillPay: Double = 0.0
-
-        let allExpenses = SplitExpenseDataModel.shared.getAllExpenseSplits()
-
-        for expense in allExpenses {
-            if expense.paidBy.contains("(You)") {
-                totalWillGet += expense.totalAmount
+        Task {
+            async let user = UserDataModel.shared.getUser(fromSupabaseBy: userId)
+            let groups = await GroupDataModel.shared.fetchGroupsForUser(userId: userId)
+            let groupIds = groups.compactMap { $0.id }
+            var groupExpenses: [ExpenseSplitForm] = []
+            for groupId in groupIds {
+                let expenses = await SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupId)
+                groupExpenses.append(contentsOf: expenses)
             }
 
-            if expense.payee.contains(userId) {
-                let amountToPay = expense.splitAmounts.reduce(0) { partialResult, entry in
-                    partialResult + entry.value
+            let userName = (await user)?.fullname ?? ""
+            let userIdString = String(userId)
+            var totalWillGet: Double = 0.0
+            var totalWillPay: Double = 0.0
+
+            for expense in groupExpenses {
+                // Calculate Will Pay: Amount user owes (user is in payee)
+                if expense.payee.contains(userId) {
+                    if let amountOwed = expense.splitAmounts[userIdString] {
+                        totalWillPay += amountOwed
+                        print("📋 Owed expense: \(expense.name), User \(userId) owes ₹\(amountOwed)")
+                    }
                 }
-                totalWillPay += amountToPay
+
+                // Calculate Will Get: Amount others owe user (user is paidBy)
+                if expense.paidBy == userName {
+                    // Sum amounts for other users (exclude user's own share)
+                    let othersOwe = expense.splitAmounts.reduce(0.0) { sum, entry in
+                        if entry.key != userIdString {
+                            return sum + entry.value
+                        }
+                        return sum
+                    }
+                    totalWillGet += othersOwe
+                    print("📋 Paid expense: \(expense.name), Others owe user \(userId) ₹\(othersOwe)")
+                }
+            }
+
+            // Calculate net amount (positive: user owes, negative: user is owed)
+            let netAmount = totalWillPay - totalWillGet
+
+            DispatchQueue.main.async {
+                self.Willgetlabel.text = String(format: "₹%.0f", totalWillGet)
+                self.WillPaylabel.text = String(format: "₹%.0f", totalWillPay)
+                self.TotalExpenselabel.text = String(format: "₹%.0f", netAmount)
+                // Optional: Color code net amount
+                self.TotalExpenselabel.textColor = netAmount > 0 ? .red : (netAmount < 0 ? .systemGreen : .black)
             }
         }
-
-        Willgetlabel.text = "₹\(totalWillGet)"
-        WillPaylabel.text = "₹\(totalWillPay)"
     }
 
     func loadUserGroups() {

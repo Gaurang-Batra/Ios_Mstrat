@@ -339,7 +339,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8vn-Rv-f5x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2380.9160305343512" y="-81.690140845070431"/>
+            <point key="canvasLocation" x="2821" y="32"/>
         </scene>
         <!--Group Detail View Controller-->
         <scene sceneID="iuy-9E-oaC">
@@ -365,7 +365,7 @@ Try it!</string>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="u9a-RQ-vSZ">
-                                        <rect key="frame" x="69" y="73" width="164" height="35"/>
+                                        <rect key="frame" x="69" y="73" width="216" height="35"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <state key="normal" title="Button"/>
@@ -480,7 +480,7 @@ Try it!</string>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         </imageView>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Sender" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DRs-8Z-wFU">
-                                                            <rect key="frame" x="32" y="50" width="89" height="21"/>
+                                                            <rect key="frame" x="25" y="50" width="110" height="21"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                             <nil key="textColor"/>
@@ -573,7 +573,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Tp0-tN-bn4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4185.4961832061063" y="417.6056338028169"/>
+            <point key="canvasLocation" x="4048" y="520"/>
         </scene>
         <!--SplitPal-->
         <scene sceneID="em5-IT-PDh">
@@ -981,7 +981,7 @@ Try it!</string>
                                                         <nil key="highlightedColor"/>
                                                     </label>
                                                     <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="4F4-4d-jZx">
-                                                        <rect key="frame" x="8" y="48" width="347" height="153"/>
+                                                        <rect key="frame" x="0.0" y="48" width="363" height="161"/>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -993,14 +993,14 @@ Try it!</string>
                                                         </collectionViewFlowLayout>
                                                         <cells>
                                                             <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="badges" id="GWv-k1-lla" customClass="BadgesCollectionViewCell" customModule="App_MStrat_8" customModuleProvider="target">
-                                                                <rect key="frame" x="19.666666666666668" y="0.0" width="308" height="147"/>
+                                                                <rect key="frame" x="27.666666666666668" y="0.0" width="308" height="147"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                                 <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="fAd-VD-eHI">
                                                                     <rect key="frame" x="0.0" y="0.0" width="308" height="147"/>
                                                                     <autoresizingMask key="autoresizingMask"/>
                                                                     <subviews>
                                                                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Y9Z-19-7wM">
-                                                                            <rect key="frame" x="-38" y="8" width="226" height="131"/>
+                                                                            <rect key="frame" x="-20" y="8" width="226" height="131"/>
                                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                                         </imageView>
                                                                     </subviews>
@@ -1049,7 +1049,7 @@ Try it!</string>
                                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         <subviews>
                                                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pog-Y0-vVC">
-                                                                <rect key="frame" x="11" y="80" width="175" height="35"/>
+                                                                <rect key="frame" x="9" y="66" width="175" height="35"/>
                                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                                 <state key="normal" title="Button"/>
                                                                 <buttonConfiguration key="configuration" style="plain" title="Add goal"/>
@@ -1144,7 +1144,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jVf-Hv-3z6" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1612.9770992366412" y="-1383.8028169014085"/>
+            <point key="canvasLocation" x="1547" y="-1404"/>
         </scene>
         <!--Profile-->
         <scene sceneID="4pg-6v-AfP">
@@ -1495,7 +1495,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2K1-CY-tpv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7724.4274809160306" y="2931.6901408450703"/>
+            <point key="canvasLocation" x="7648" y="2932"/>
         </scene>
         <!--Home-->
         <scene sceneID="Rgh-iN-qza">
@@ -1608,7 +1608,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9a8-FY-kkl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5057.2519083969464" y="1291.549295774648"/>
+            <point key="canvasLocation" x="5300" y="1292"/>
         </scene>
         <!--Members List Table View Controller-->
         <scene sceneID="gC0-2N-1mv">
@@ -1639,7 +1639,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="AxI-ZA-h7B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5108" y="-82"/>
+            <point key="canvasLocation" x="5300" y="-117"/>
         </scene>
         <!--Bill-->
         <scene sceneID="fWf-J9-Whj">
@@ -1799,7 +1799,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RHq-u3-xoG" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6799.2366412213742" y="517.6056338028169"/>
+            <point key="canvasLocation" x="7647" y="520"/>
         </scene>
         <!--Add Allowance-->
         <scene sceneID="u7z-Ut-dqt">
@@ -1929,7 +1929,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="UBL-i5-AWJ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5108" y="-1473"/>
+            <point key="canvasLocation" x="5298" y="-1499"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="aa0-J3-7jT">
@@ -2122,7 +2122,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ak2-mQ-i39" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3258.7786259541986" y="-2323.9436619718313"/>
+            <point key="canvasLocation" x="3395" y="-2323"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="sAw-t5-Nif">
@@ -2140,7 +2140,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="otd-ey-To1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4207" y="-1475"/>
+            <point key="canvasLocation" x="4398" y="-1501"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="fwH-nm-vBQ">
@@ -2158,7 +2158,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="p6q-2I-vYv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2381" y="-2322"/>
+            <point key="canvasLocation" x="2433" y="-2323"/>
         </scene>
         <!--Splash View Controller-->
         <scene sceneID="etc-6r-TZ8">
@@ -2318,7 +2318,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController id="Sgv-CM-Ofn" customClass="ForgotPasswordViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="BV8-gR-hpM">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Your Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="KLi-R9-rcc">
@@ -2468,7 +2468,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Zs1-ge-DKf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-4897" y="1865"/>
+            <point key="canvasLocation" x="-3819" y="1865"/>
         </scene>
         <!--Recovery Password View Controller-->
         <scene sceneID="xq9-Mu-Z88">
@@ -2645,14 +2645,14 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xj1-oc-ffE" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-3892" y="1912"/>
+            <point key="canvasLocation" x="-2883" y="1865"/>
         </scene>
         <!--Login View Controller-->
         <scene sceneID="jkl-p2-hkS">
             <objects>
                 <viewController storyboardIdentifier="LoginViewController" id="olV-qE-FMW" customClass="LoginViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="M3Q-SX-6fN">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="7dn-l5-MDt">
@@ -2871,7 +2871,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController id="uup-HX-cZq" customClass="SignUpViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="g5C-Jh-WPX">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tze-9L-UkC">
@@ -3078,7 +3078,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
             <objects>
                 <viewController storyboardIdentifier="verifycode" id="OmZ-FX-Eic" customClass="VerifyotpViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="9VB-VW-BgL">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Enter otp" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="SX7-lS-bu2">
@@ -3222,7 +3222,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uU4-jn-K7d" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1598" y="1039"/>
+            <point key="canvasLocation" x="-1624" y="1053"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="1qy-tP-5UM">
@@ -3240,7 +3240,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YCZ-Y5-eR2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-5911" y="1073"/>
+            <point key="canvasLocation" x="-5903" y="1039"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="423-Cz-wQb">
@@ -3259,7 +3259,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5zU-EL-7qQ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-5709" y="1865"/>
+            <point key="canvasLocation" x="-4821" y="1865"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="GNQ-mp-MwB">
@@ -3278,7 +3278,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="yfU-oG-zDz" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-4227" y="1073"/>
+            <point key="canvasLocation" x="-4247" y="1039"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="k4b-7Y-7vN">
@@ -3377,7 +3377,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="U7m-kc-W0X" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6799.2366412213742" y="2931.6901408450703"/>
+            <point key="canvasLocation" x="6723" y="2932"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Yos-77-RMq">
@@ -3395,7 +3395,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EEW-yL-wCT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5883.2061068702287" y="517.6056338028169"/>
+            <point key="canvasLocation" x="6723" y="521"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="dFW-5U-11m">
@@ -3413,7 +3413,7 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="M6f-Ze-Qce" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4185.4961832061063" y="1291.549295774648"/>
+            <point key="canvasLocation" x="4372" y="1292"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="5RZ-ub-8dY">
@@ -3453,9 +3453,9 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="DCR-Aw-acL"/>
+        <segue reference="slq-dV-Nfy"/>
         <segue reference="axb-SC-zZr"/>
-        <segue reference="HMP-H4-Ezh"/>
+        <segue reference="WJu-5e-rgA"/>
         <segue reference="5Pz-bk-SPw"/>
     </inferredMetricsTieBreakers>
     <resources>

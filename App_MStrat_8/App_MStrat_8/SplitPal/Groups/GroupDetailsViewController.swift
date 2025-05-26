@@ -1,3 +1,4 @@
+
 import UIKit
 
 class GroupDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -17,17 +18,26 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
     var groupItem: Group?
     var userId: Int?
     
+    // Helper struct for balance calculations
+    private struct BalanceEntry {
+        let fromUser: String // Name of the user who owes
+        let toUser: String   // Name of the user to be paid
+        var amount: Double   // Amount owed
+    }
+    
     @IBAction func addedmemberbuttontapped(_ sender: UIButton) {
         print(groupItem?.group_name ?? "No group name")
         print(groupItem?.id ?? "No group ID")
         
         SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
             guard let self = self else { return }
-            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
-            self.filterBalances()
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.updateMembersButton() // Refresh member names
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+            Task {
+                await self.filterBalances()
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.updateMembersButton()
+                }
             }
         }
     }
@@ -44,17 +54,17 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             return
         }
         
-        // Fetch and display member names
         updateMembersButton()
         
-        // Fetch expenses asynchronously
         SplitExpenseDataModel.shared.getExpenseSplits(forGroup: group.id ?? 0) { [weak self] expenses in
             guard let self = self else { return }
-            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
-            self.filterBalances()
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.updateExpenseSum()
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+            Task {
+                await self.filterBalances()
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.updateExpenseSum()
+                }
             }
         }
         
@@ -64,10 +74,8 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         GroupInfoView.layer.cornerRadius = 20
         GroupInfoView.layer.masksToBounds = true
         
-        // Initially set the separator style based the selected segment
         updateSeparatorStyle()
         
-        // Set up the segment control action
         SegmentedControllerforgroup.addTarget(self, action: #selector(segmentControlChanged), for: .valueChanged)
         
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTableView), name: .newExpenseAddedInGroup, object: nil)
@@ -78,12 +86,14 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         
         SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
             guard let self = self else { return }
-            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
-            self.filterBalances()
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.updateExpenseSum()
-                self.updateSeparatorStyle()
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+            Task {
+                await self.filterBalances()
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.updateExpenseSum()
+                    self.updateSeparatorStyle()
+                }
             }
         }
     }
@@ -100,7 +110,7 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
             DispatchQueue.main.async {
                 switch result {
                 case .success(let users):
-                    let memberNames = (users as? [User])?.map { $0.fullname } ?? []
+                    let memberNames = (users as? [User])?.prefix(2).map { $0.fullname } ?? []
                     let displayText = memberNames.isEmpty ? "No Members" : memberNames.joined(separator: ", ")
                     self.membersbutton.setTitle(displayText, for: .normal)
                 case .failure(let error):
@@ -115,19 +125,25 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         print("Reloading table view...")
         SplitExpenseDataModel.shared.getExpenseSplits(forGroup: groupItem?.id ?? 0) { [weak self] expenses in
             guard let self = self else { return }
-            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
-            self.filterBalances()
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.updateExpenseSum()
+            self.balances = expenses.sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+            Task {
+                await self.filterBalances()
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    self.updateExpenseSum()
+                }
             }
         }
     }
     
     @objc func segmentControlChanged() {
-        filterBalances()
-        updateSeparatorStyle()
-        tableView.reloadData()
+        Task {
+            await filterBalances()
+            DispatchQueue.main.async {
+                self.updateSeparatorStyle()
+                self.tableView.reloadData()
+            }
+        }
     }
     
     func updateExpenseSum() {
@@ -135,35 +151,117 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
         amountlabel.text = "Rs.\(Int(totalAmount))"
     }
     
-    func filterBalances() {
-        var tempBalances: [ExpenseSplitForm] = []
-        
+    func filterBalances() async {
+        guard let userId = userId else {
+            myBalances = []
+            othersBalances = []
+            return
+        }
+
+        // Fetch current user's full name
+        let currentUser = await UserDataModel.shared.getUser(fromSupabaseBy: userId)
+        let currentUserName = currentUser?.fullname ?? "You"
+        let currentUserDisplayName = "\(currentUserName) (You)"
+
+        // Step 1: Create a list of balance entries
+        var balanceEntries: [BalanceEntry] = []
+
         for expense in balances {
+            let splitAmounts = expense.splitAmounts
+            if splitAmounts.isEmpty {
+                print("⚠️ Skipping expense \(expense.name) due to empty splitAmounts")
+                continue
+            }
+
+            // Get the paidBy user
+            let paidByName = expense.paidBy
+            print("📋 Processing expense \(expense.name), paidBy: \(paidByName), payee: \(expense.payee), splitAmounts: \(splitAmounts)")
+
+            // For each payee, create a balance entry
             for payeeId in expense.payee {
-                var payeeExpense = expense
-                payeeExpense.paidBy = expense.paidBy
-                payeeExpense.payee = [payeeId]
-                
-                if let existingExpenseIndex = tempBalances.firstIndex(where: { $0.paidBy == payeeExpense.paidBy && $0.payee == payeeExpense.payee }) {
-                    tempBalances[existingExpenseIndex].totalAmount += payeeExpense.totalAmount
+                // Fetch payee's full name from Supabase for display purposes
+                let payeeUser = await UserDataModel.shared.getUser(fromSupabaseBy: payeeId)
+                guard let payeeName = payeeUser?.fullname else {
+                    print("❌ Failed to fetch user for payee ID \(payeeId) in expense \(expense.name)")
+                    continue
+                }
+
+                // Look up amount using payeeId as a string key in splitAmounts
+                let payeeIdString = String(payeeId)
+                guard let amount = splitAmounts[payeeIdString], amount > 0 else {
+                    print("⚠️ Skipping payee \(payeeName) (ID: \(payeeId)) for expense \(expense.name) due to zero or missing amount in splitAmounts: \(splitAmounts)")
+                    continue
+                }
+
+                // Determine the direction of the balance
+                if paidByName == currentUserDisplayName || paidByName == currentUserName {
+                    balanceEntries.append(BalanceEntry(fromUser: payeeName, toUser: currentUserDisplayName, amount: amount))
+                } else if payeeId == userId {
+                    balanceEntries.append(BalanceEntry(fromUser: currentUserDisplayName, toUser: paidByName, amount: amount))
                 } else {
-                    tempBalances.append(payeeExpense)
+                    balanceEntries.append(BalanceEntry(fromUser: payeeName, toUser: paidByName, amount: amount))
                 }
             }
         }
-        
-        let currentUserName = userId != nil ? UserDataModel.shared.getUser(by: userId!)?.fullname : nil
-        let currentUserDisplayName = currentUserName != nil ? "\(currentUserName!) (You)" : nil
-        
-        myBalances = tempBalances.filter {
-            (currentUserDisplayName != nil && $0.paidBy.contains(currentUserDisplayName!)) ||
-            (userId != nil && $0.payee.contains(userId!))
-        }.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
-        
-        othersBalances = tempBalances.filter {
-            (currentUserDisplayName == nil || !$0.paidBy.contains(currentUserDisplayName!)) &&
-            (userId == nil || !$0.payee.contains(userId!))
-        }.sorted { ($0.id ?? 0) > ($1.id ?? 0) } // Sort by id descending
+
+        // Step 2: Net out balances
+        let nettedBalances = netBalances(balanceEntries)
+
+        // Step 3: Split into myBalances and othersBalances
+        myBalances = createExpenseSplitForms(
+            from: nettedBalances.filter { $0.fromUser == currentUserDisplayName || $0.toUser == currentUserDisplayName },
+            currentUserId: userId,
+            currentUserDisplayName: currentUserDisplayName,
+            groupId: groupItem?.id
+        ).sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+
+        othersBalances = createExpenseSplitForms(
+            from: nettedBalances.filter { $0.fromUser != currentUserDisplayName && $0.toUser != currentUserDisplayName },
+            currentUserId: userId,
+            currentUserDisplayName: currentUserDisplayName,
+            groupId: groupItem?.id
+        ).sorted { ($0.id ?? 0) > ($1.id ?? 0) }
+    }
+    private func createExpenseSplitForms(from balances: [BalanceEntry], currentUserId: Int, currentUserDisplayName: String, groupId: Int?) -> [ExpenseSplitForm] {
+        return balances.map { balance in
+            ExpenseSplitForm(
+                id: nil,
+                name: "Balance",
+                category: "Balance",
+                totalAmount: balance.amount,
+                paidBy: balance.toUser,
+                groupId: groupId,
+                image: nil,
+                splitOption: nil,
+                splitAmounts: [balance.fromUser: balance.amount],
+                payee: balance.fromUser == currentUserDisplayName ? [currentUserId] : [],
+                date: Date(),
+                ismine: balance.toUser == currentUserDisplayName
+            )
+        }
+    }
+    
+    private func netBalances(_ entries: [BalanceEntry]) -> [BalanceEntry] {
+        var netted: [String: Double] = [:]
+        var result: [BalanceEntry] = []
+
+        for entry in entries {
+            let sortedUsers = [entry.fromUser, entry.toUser].sorted()
+            let key = "\(sortedUsers[0])->\(sortedUsers[1])"
+            let isForward = entry.fromUser == sortedUsers[0]
+            let amount = isForward ? entry.amount : -entry.amount
+            netted[key, default: 0] += amount
+        }
+
+        for (key, amount) in netted {
+            guard amount != 0 else { continue }
+            let users = key.split(separator: "->").map { String($0) }
+            let fromUser = amount > 0 ? users[0] : users[1]
+            let toUser = amount > 0 ? users[1] : users[0]
+            result.append(BalanceEntry(fromUser: fromUser, toUser: toUser, amount: abs(amount)))
+        }
+
+        return result.sorted { $0.amount > $1.amount }
     }
     
     func updateSeparatorStyle() {
@@ -221,7 +319,9 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
                 balance = othersBalances[indexPath.row]
             }
             
-            cell.configure(with: balance)
+            Task {
+                await cell.configure(with: balance)
+            }
             return cell
         }
     }
@@ -326,9 +426,9 @@ class GroupDetailViewController: UIViewController, UITableViewDataSource, UITabl
                     print("Sending groupId: \(groupId)")
                 }
                 if let userId = self.userId {
-                            destinationVC.currentUserId = userId
-                            print("Sending userId: \(userId)")
-                        }
+                    destinationVC.currentUserId = userId
+                    print("Sending userId: \(userId)")
+                }
             }
         }
     }
