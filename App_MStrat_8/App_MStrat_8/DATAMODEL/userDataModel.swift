@@ -448,11 +448,11 @@ class UserDataModel {
             subject: "Verification Code",
             text: """
             Hello!
-            Welcome to Mstrat.
+            Welcome to MStrat.
             Your verification code is: \(code).
             Please enter this code to verify your account.
             Best Regards,
-            Team Mstart
+            Team MStrat
             """
         )
 
