@@ -31,19 +31,28 @@ class GoalViewController: UIViewController {
         }
 
         let deadline = Goaldeadline.date
-        let newGoal = Goal(title: title, amount: amount, deadline: deadline, savings: 0)
+        let newGoal = Goal(title: title, amount: amount, deadline: deadline, savings: 0, user_id: userId)
         
         // Add to local model
         GoalDataModel.shared.addGoal(newGoal)
         
-        // Notify for UI updates elsewhere
-        NotificationCenter.default.post(name: NSNotification.Name("GoalAdded"), object: nil, userInfo: ["goalAmount": amount])
-
-        // Save all current goals to Supabase
+        // Save to Supabase and wait for completion
         Task {
-            await GoalDataModel.shared.saveToSupabase(userId: userId)
+            do {
+                try await GoalDataModel.shared.saveToSupabase(userId: userId)
+                // Notify after successful save
+                NotificationCenter.default.post(name: NSNotification.Name("GoalAdded"), object: nil, userInfo: ["goalAmount": amount])
+                DispatchQueue.main.async {
+                    self.dismiss(animated: true, completion: nil)
+                }
+            } catch {
+                print("❌ Failed to save goal to Supabase: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "Error", message: "Failed to save goal: \(error.localizedDescription)", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            }
         }
-
-        self.dismiss(animated: true, completion: nil)
     }
 }

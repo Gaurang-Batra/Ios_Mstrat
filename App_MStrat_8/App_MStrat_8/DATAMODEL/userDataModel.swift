@@ -22,16 +22,14 @@ struct User: Codable {
 
 class UserDataModel {
     private var users: [User] = []
-     var userCache: [Int: User] = [:] // Cache by user ID
-    private var pendingUsers: [String: User] = [:] // Temporary storage for unverified users
-    static let shared = UserDataModel()
-    private var passwordResetOTPs: [String: String] = [:]
-    
-    private init() {
-        
-    }
-    
-    private let client = SupabaseAPIClient.shared.supabaseClient
+       var userCache: [Int: User] = [:] // Cache by user ID
+       private var pendingUsers: [String: User] = [:] // Temporary storage for unverified users
+       static let shared = UserDataModel()
+       private var passwordResetOTPs: [String: String] = [:]
+       
+       private init() {}
+       
+       private let client = SupabaseAPIClient.shared.supabaseClient
     
     func getAllUsers() -> [User] {
         return Array(userCache.values)
@@ -88,6 +86,8 @@ class UserDataModel {
         return userCache[id]
     }
     
+    
+    
     func getUserByEmail(_ email: String) async -> User? {
         do {
             let response: [User] = try await client
@@ -106,6 +106,27 @@ class UserDataModel {
             return nil
         }
     }
+    func getUserByUsername(_ username: String) async -> User? {
+           do {
+               let response: [User] = try await client
+                   .database
+                   .from("users")
+                   .select("id, email, fullname, password, is_verified, verification_code, is_guest, groups")
+                   .eq("fullname", value: username) // Adjust to "username" if using a separate column
+                   .execute()
+                   .value
+               if let user = response.first, let userId = user.id {
+                   userCache[userId] = user
+                   print("✅ Found user by username '\(username)': ID \(userId), \(user.fullname)")
+                   return user
+               }
+               print("❌ No user found for username '\(username)'")
+               return nil
+           } catch {
+               print("❌ Error fetching user by username '\(username)': \(error.localizedDescription)")
+               return nil
+           }
+       }
     
     func getUser(fromSupabaseBy id: Int) async -> User? {
         // Check cache first
@@ -133,7 +154,63 @@ class UserDataModel {
             return nil
         }
     }
-   
+    
+    func getUsers(fromSupabaseBy ids: [Int]) async throws -> [User] {
+           print("🔍 getUsers called with IDs: \(ids)")
+           
+           // Check cache first
+           let cachedUsers = ids.compactMap { userCache[$0] }
+           let missingIds = ids.filter { userCache[$0] == nil }
+           print("🗳️ Cached users: \(cachedUsers.map { "\($0.id ?? -1): \($0.fullname)" })")
+           print("🔎 Missing IDs to fetch from Supabase: \(missingIds)")
+           
+           if missingIds.isEmpty {
+               print("✅ All users found in cache")
+               return ids.compactMap { userCache[$0] } // Preserve order
+           }
+           
+           do {
+               let response: [User] = try await client
+                   .database
+                   .from("users")
+                   .select("id, email, fullname, password, is_verified, verification_code, is_guest, groups")
+                   .in("id", value: missingIds)
+                   .execute()
+                   .value
+               
+               print("✅ Supabase returned \(response.count) users: \(response.map { "\($0.id ?? -1): \($0.fullname)" })")
+               
+               // Update cache
+               for user in response {
+                   if let userId = user.id {
+                       userCache[userId] = user
+                       print("✅ Cached user: \(user.fullname) (ID: \(userId))")
+                   } else {
+                       print("⚠️ User returned without ID: \(user.fullname)")
+                   }
+               }
+               
+               // Combine cached and fetched users, preserving order
+               let orderedUsers = ids.map { id in
+                   userCache[id] ?? User(
+                       id: id,
+                       email: "",
+                       fullname: "Unknown (ID: \(id))",
+                       password: "",
+                       is_guest: false
+                   )
+               }
+               print("📤 Returning ordered users: \(orderedUsers.map { "\($0.id ?? -1): \($0.fullname)" })")
+               return orderedUsers
+           } catch {
+               print("❌ Error fetching users from Supabase for IDs \(missingIds): \(error)")
+               if let postgrestError = error as? PostgrestError {
+                   print("🔍 PostgrestError details: \(postgrestError)")
+               }
+               throw error
+           }
+       }
+       
     
     func assignGoal(to userId: Int, goal: Goal) {
         if let user = userCache[userId] {

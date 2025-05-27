@@ -208,6 +208,15 @@ class SplitpalViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedGroupIndex = indexPath.section
         let selectedGroup = filteredGroups[indexPath.section]
+        if let cell = tableView.cellForRow(at: indexPath) {
+            UIView.animate(withDuration: 0.2) {
+                cell.contentView.transform = CGAffineTransform(scaleX: 0.98, y: 0.98)
+            } completion: { _ in
+                UIView.animate(withDuration: 0.2) {
+                    cell.contentView.transform = .identity
+                }
+            }
+        }
         print("Selected group: \(selectedGroup.group_name)")
         performSegue(withIdentifier: "Groupsdetails", sender: self)
     }

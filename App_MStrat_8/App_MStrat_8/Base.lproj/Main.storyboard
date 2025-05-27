@@ -112,7 +112,7 @@ Try it!</string>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Groups" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uzC-97-awF">
                                         <rect key="frame" x="15" y="23" width="85" height="33"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="23"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="23"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -283,7 +283,7 @@ Try it!</string>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="uiH-LZ-nMp">
-                                <rect key="frame" x="16" y="153" width="361" height="623"/>
+                                <rect key="frame" x="16" y="214" width="361" height="562"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
@@ -339,7 +339,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8vn-Rv-f5x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2821" y="32"/>
+            <point key="canvasLocation" x="2820.6106870229005" y="31.690140845070424"/>
         </scene>
         <!--Group Detail View Controller-->
         <scene sceneID="iuy-9E-oaC">
@@ -426,7 +426,7 @@ Try it!</string>
                                                     <rect key="frame" x="12" y="11" width="361" height="56"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <subviews>
-                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="fruits" translatesAutoresizingMaskIntoConstraints="NO" id="Hvs-zZ-DOT">
+                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="fruits" translatesAutoresizingMaskIntoConstraints="NO" id="Hvs-zZ-DOT">
                                                             <rect key="frame" x="8" y="8" width="33" height="34"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         </imageView>
@@ -494,7 +494,7 @@ Try it!</string>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="$30" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SkF-F5-KzK">
-                                                            <rect key="frame" x="118" y="6" width="80" height="30"/>
+                                                            <rect key="frame" x="118" y="6" width="101" height="30"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="21"/>
                                                             <nil key="textColor"/>
@@ -504,18 +504,6 @@ Try it!</string>
                                                             <rect key="frame" x="32" y="8.6666666666666572" width="41" height="29"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                         </imageView>
-                                                        <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6td-4M-Ycb">
-                                                            <rect key="frame" x="278" y="16" width="80" height="35"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <state key="normal" title="Button"/>
-                                                            <buttonConfiguration key="configuration" style="plain" title="...">
-                                                                <color key="baseForegroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                            </buttonConfiguration>
-                                                            <connections>
-                                                                <action selector="settlementButtonTapped:" destination="ALt-kx-NjW" eventType="touchUpInside" id="Vvn-aw-bus"/>
-                                                                <segue destination="h39-OF-3ru" kind="presentation" identifier="Settlement" id="RmN-Jf-iKz"/>
-                                                            </connections>
-                                                        </button>
                                                         <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="icons8-arrow-50" translatesAutoresizingMaskIntoConstraints="NO" id="LZL-71-kch">
                                                             <rect key="frame" x="85" y="23" width="199" height="48"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -573,7 +561,7 @@ Try it!</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Tp0-tN-bn4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4048" y="520"/>
+            <point key="canvasLocation" x="4046.5648854961833" y="519.71830985915494"/>
         </scene>
         <!--SplitPal-->
         <scene sceneID="em5-IT-PDh">
@@ -1558,57 +1546,6 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Wi4-Wl-oAs" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="262" y="2932"/>
-        </scene>
-        <!--Settle Bill-->
-        <scene sceneID="RAf-X1-2lN">
-            <objects>
-                <viewController id="ooi-GF-RYF" customClass="SettlementViewController" customModule="App_MStrat_8" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="SqJ-j1-xBA">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="Tb2-wv-BoM">
-                                <rect key="frame" x="16" y="148" width="361" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <segments>
-                                    <segment title="Full Settlement"/>
-                                    <segment title="Partial Settlement"/>
-                                </segments>
-                            </segmentedControl>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Rde-oG-pMr">
-                                <rect key="frame" x="16" y="341" width="361" height="66"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Button"/>
-                                <connections>
-                                    <action selector="settlementButtonTapped:" destination="ooi-GF-RYF" eventType="touchUpInside" id="S6m-QR-3oz"/>
-                                </connections>
-                            </button>
-                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="45A-lM-nqO">
-                                <rect key="frame" x="16" y="243" width="361" height="34"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="2kT-nX-8vk"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" title="Settle Bill" id="vrb-Gk-QC7">
-                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="dHr-v6-eXP">
-                            <connections>
-                                <action selector="Cancelbuttontapped:" destination="ooi-GF-RYF" id="kVP-58-8sy"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
-                    <connections>
-                        <outlet property="settlementamounttextfield" destination="45A-lM-nqO" id="oT5-DU-Eza"/>
-                        <outlet property="settlementbutton" destination="Rde-oG-pMr" id="BdA-3r-pV0"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="9a8-FY-kkl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="5300" y="1292"/>
         </scene>
         <!--Members List Table View Controller-->
         <scene sceneID="gC0-2N-1mv">
@@ -3396,24 +3333,6 @@ To enhance safety, we’ve implemented robust measures to protect against unauth
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EEW-yL-wCT" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="6723" y="521"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="dFW-5U-11m">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="h39-OF-3ru" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="MZw-KQ-eZh">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="56"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="ooi-GF-RYF" kind="relationship" relationship="rootViewController" id="snB-ah-YEW"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="M6f-Ze-Qce" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="4372" y="1292"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="5RZ-ub-8dY">

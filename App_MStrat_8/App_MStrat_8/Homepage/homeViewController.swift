@@ -144,7 +144,7 @@ class homeViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
     }
 
-    private func loadGoals() {
+    func loadGoals() {
         goals = GoalDataModel.shared.getAllGoals()
         if let firstGoal = goals.first {
             currentGoal = firstGoal

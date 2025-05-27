@@ -163,6 +163,9 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
                             }
                         }
                         
+                        // Post notification to refresh SplitpalViewController's table view
+                        NotificationCenter.default.post(name: .newGroupAdded, object: nil)
+                        
                         DispatchQueue.main.async {
                             let alert = UIAlertController(
                                 title: "Group Created",
@@ -188,7 +191,7 @@ class CreateGroupViewController: UIViewController, UITableViewDelegate, UITableV
                         }
                     }
                 } else {
-                    print("❌ Failed to create group object")
+//                    print(tc-nonewgroup)
                     DispatchQueue.main.async {
                         let alert = UIAlertController(
                             title: "Error",

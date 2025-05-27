@@ -24,7 +24,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         title = "Notifications"
         navigationItem.largeTitleDisplayMode = .never
         
-        // Create custom button with back arrow and "Back" text
+        // Create custom back button
         let backButton = UIButton(type: .system)
         backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.setTitle("Back", for: .normal)
@@ -33,8 +33,6 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         backButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
         backButton.addTarget(self, action: #selector(dismissViewController), for: .touchUpInside)
         backButton.sizeToFit()
-
-        // Set custom button as left bar button item
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
 
         // Set up the table view
@@ -49,6 +47,9 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
+
+        // Add top margin to table view
+        tableView.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
 
         // Register the cell class
         tableView.register(notificationTableViewCell.self, forCellReuseIdentifier: "notification")
@@ -109,18 +110,22 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             for notification in notifications {
                 let inviterId = notification.inviter_id
                 if users[inviterId] == nil {
-                    if let user = UserDataModel.shared.getUser(by: inviterId) {
-                        users[inviterId] = user.fullname
-                        print("🔔 Cached inviter name: \(user.fullname) for inviterId: \(inviterId)")
-                    } else {
+                    do {
+                        if let user = try await UserDataModel.shared.getUser(fromSupabaseBy: inviterId) {
+                            users[inviterId] = user.fullname
+                            print("🔔 Cached inviter name: \(user.fullname) for inviterId: \(inviterId)")
+                        } else {
+                            users[inviterId] = "Unknown User"
+                            print("🔔 No user found for inviterId: \(inviterId)")
+                        }
+                    } catch {
                         users[inviterId] = "Unknown User"
-                        print("🔔 No user found for inviterId: \(inviterId)")
+                        print("❌ Error fetching user for inviterId: \(inviterId), error: \(error)")
                     }
                 }
             }
 
             DispatchQueue.main.async {
-                // Toggle visibility of nonotificationimage, nonotificationtext, and tableView based on table view data
                 let isTableViewEmpty = self.notifications.isEmpty
                 self.nonotificationimage.isHidden = !isTableViewEmpty
                 self.nonotificationtext.isHidden = !isTableViewEmpty
@@ -190,7 +195,6 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
                 print("🔔 Successfully accepted notification ID: \(notificationId)")
                 self.notifications.removeAll { $0.id == notificationId }
                 DispatchQueue.main.async {
-                    // Toggle visibility of nonotificationimage, nonotificationtext, and tableView after accepting
                     let isTableViewEmpty = self.notifications.isEmpty
                     self.nonotificationimage.isHidden = !isTableViewEmpty
                     self.nonotificationtext.isHidden = !isTableViewEmpty
