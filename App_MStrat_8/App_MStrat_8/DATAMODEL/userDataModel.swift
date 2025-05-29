@@ -434,7 +434,7 @@ class UserDataModel {
         let smtp = SMTP(
             hostname: "smtp.gmail.com",
             email: "sharmankush004a@gmail.com",
-            password: "bszb vxlu fabx fyns",
+            password: "bs*zb *vx*lu* *fa*bx* *fy*ns*",
             port: 465,
             tlsMode: .requireTLS
         )
